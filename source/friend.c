@@ -55,6 +55,16 @@ bool Friend_GetHideTitleStatus(void)
 	return false;
 }
 
+Profile Friend_GetProfile(void)
+{
+	Profile profile;
+	
+	if (R_SUCCEEDED(FRD_GetMyProfile(&profile)))
+		return profile;
+	
+	return profile;
+}
+
 char * Friend_GetScreenName(void)
 {
 	u16 unsigned_screenName[FRIENDS_SCREEN_NAME_SIZE];
@@ -103,12 +113,31 @@ u64 Friend_GetFavouriteGame(void)
 	return 0;
 }
 
+bool Friend_IsFromFriendList(u64 friendCode)
+{
+	bool isFromList = false;
+	
+	if (R_SUCCEEDED(FRD_IsFromFriendList(friendCode, &isFromList)))
+		return isFromList;
+	
+	return false;
+}
+
 static Result parseSMDH(u64 titleId, SMDH * smdh) 
 {
 	Handle handle;
 	
+	FS_MediaType mediaType = 0;
+	
+	if (((titleId / 1000000000) % 10) == 9)
+		mediaType = MEDIATYPE_SD;
+	else if (((titleId / 1000000000) % 10) == 8)
+		mediaType = MEDIATYPE_NAND;
+	else 
+		mediaType = MEDIATYPE_GAME_CARD;
+	
 	static const u32 filePath[] = {0x00000000, 0x00000000, 0x00000002, 0x6E6F6369, 0x00000000};
-	u32 archivePath[] = {(u32) (titleId & 0xFFFFFFFF), (u32) ((titleId >> 32) & 0xFFFFFFFF), MEDIATYPE_SD, 0x00000000};
+	u32 archivePath[] = {(u32) (titleId & 0xFFFFFFFF), (u32) ((titleId >> 32) & 0xFFFFFFFF), mediaType, 0x00000000};
 	FS_Path archiveBinPath = {PATH_BINARY, sizeof(archivePath), archivePath};
 	FS_Path fileBinPath = {PATH_BINARY, sizeof(filePath), filePath};
 	
@@ -162,34 +191,10 @@ char * Friend_GetGameDesc(u64 titleId)
 
 void Friend_GetGameIcon(u64 titleId)
 {
-	Handle handle;
-
-	static const u32 filePath[5] = {0x00000000, 0x00000000, 0x00000002, 0x6E6F6369, 0x00000000};
-	u32 archivePath[4] = {(u32) (titleId & 0xFFFFFFFF), (u32) ((titleId >> 32) & 0xFFFFFFFF), MEDIATYPE_SD, 0x00000000};
-	FS_Path archiveBinPath = {PATH_BINARY, sizeof(archivePath), archivePath};
-	FS_Path fileBinPath = {PATH_BINARY, sizeof(filePath), filePath};
+	SMDH smdh;
 	
-	if (R_SUCCEEDED(FSUSER_OpenFileDirectly(&handle, ARCHIVE_SAVEDATA_AND_CONTENT, archiveBinPath, fileBinPath, FS_OPEN_READ, 0))) 
-	{
-		SMDH * smdh = (SMDH*) calloc(1, sizeof(SMDH));
-		
-		if (smdh != NULL) 
-		{
-			u32 bytesRead = 0;
-		
-			if (R_SUCCEEDED(FSFILE_Read(handle, &bytesRead, 0, smdh, sizeof(SMDH))) && bytesRead == sizeof(SMDH)) 
-			{
-				if (smdh->magic[0] == 'S' && smdh->magic[1] == 'M' && smdh->magic[2] == 'D' && smdh->magic[3] == 'H') 
-				{
-					screen_load_texture_tiled(TEXTURE_GAME_ICON, smdh->largeIcon, sizeof(smdh->largeIcon), 48, 48, GPU_RGB565, false);
-				}
-			}
-		}	
-		
-		free(smdh);
-	}
-	
-	FSFILE_Close(handle);
+	if (R_SUCCEEDED(parseSMDH(titleId, &smdh)))
+		screen_load_texture_tiled(TEXTURE_GAME_ICON, smdh.largeIcon, sizeof(smdh.largeIcon), 48, 48, GPU_RGB565, false);
 }
 
 static AppPlatform platformFromId(u16 id)
@@ -226,4 +231,14 @@ char * Friend_GetPlatform(u64 titleId)
 		default:
 			return "Unknown";
 	}
+}
+
+bool Friend_IsValidFriendCode(u64 friendCode)
+{
+	bool isValid = false;
+	
+	if (R_SUCCEEDED(FRD_IsValidFriendCode(friendCode, &isValid)))
+		return isValid;
+	
+	return false;
 }

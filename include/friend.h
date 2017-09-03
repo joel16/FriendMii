@@ -1,7 +1,7 @@
 #ifndef FRIEND_H
 #define FRIEND_H
 
-#define TEXTURE_GAME_ICON 5
+#define TEXTURE_GAME_ICON 6
 
 typedef enum 
 {
@@ -47,9 +47,11 @@ char * Friend_GetScreenName(void);
 char * Friend_GetMyComment(void);
 u64 Friend_GetCurrentPlayingGame(void);
 u64 Friend_GetFavouriteGame(void);
+bool Friend_IsFromFriendList(u64 friendCode);
 char * Friend_GetGameTitle(u64 titleId);
 char * Friend_GetGameDesc(u64 titleId);
 void Friend_GetGameIcon(u64 titleId);
 char * Friend_GetPlatform(u64 titleId);
+bool Friend_IsValidFriendCode(u64 friendCode);
 
 #endif

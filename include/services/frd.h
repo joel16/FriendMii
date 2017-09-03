@@ -63,8 +63,10 @@ Result FRD_GetMyMii(miiStoreData * mii);
 Result FRD_GetMyComment(u16 * comment);
 Result FRD_GetMyPlayingGame(u64 * titleId);
 Result FRD_GetMyFavoriteGame(u64 * titleId);
+Result FRD_IsFromFriendList(u64 friendCode, bool * isFromList);
 Result FRD_UpdateGameModeDescription(const wchar_t * desc);
 Result FRD_PrincipalIdToFriendCode(u32 principalId, u64 * friendCode);
 Result FRD_FriendCodeToPrincipalId(u64 friendCode, u32 * principalId);
+Result FRD_IsValidFriendCode(u64 friendCode, bool * isValid);
 
 #endif

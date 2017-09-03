@@ -215,16 +215,33 @@ Result FRD_GetMyFavoriteGame(u64 * titleId)
 	return cmdbuf[1];
 }
 
+Result FRD_IsFromFriendList(u64 friendCode, bool * isFromList)
+{
+	Result ret = 0;
+	u32 * cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1B, 2, 0); // 0x001B0080
+	cmdbuf[1] = (u32)(friendCode & 0xFFFFFFFF);
+	cmdbuf[2] = (u32)(friendCode >> 32);
+
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+
+	*isFromList = cmdbuf[2] & 0xFF;
+	
+	return cmdbuf[1];
+}
+
 Result FRD_UpdateGameModeDescription(const wchar_t * desc)
 {
 	Result ret = 0;
 	u32 * cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x1D, 0, 2); // 0x001D0002
-    cmdbuf[1] = 0x400802;
-    cmdbuf[2] = (uintptr_t)desc;
+	cmdbuf[1] = 0x400802;
+	cmdbuf[2] = (uintptr_t)desc;
     
-    if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
 		return ret;
 
 	return cmdbuf[1];
@@ -280,5 +297,22 @@ Result FRD_GetFriendProfile(Profile * profileList, const FriendKey * friendKeyLi
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
 		return ret;
 
+	return cmdbuf[1];
+}
+
+Result FRD_IsValidFriendCode(u64 friendCode, bool * isValid)
+{
+	Result ret = 0;
+	u32 * cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x26, 2, 0); // 0x00260080
+	cmdbuf[1] = (u32)(friendCode & 0xFFFFFFFF);
+	cmdbuf[2] = (u32)(friendCode >> 32);
+
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+
+	*isValid = cmdbuf[2] & 0xFF;
+	
 	return cmdbuf[1];
 }
