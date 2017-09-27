@@ -19,3 +19,19 @@ void u16_to_u8(char * buf, const u16 * input, size_t bufsize)
 	
 	buf[units] = 0;
 }
+
+u16 touchGetX(void)
+{
+	touchPosition pos;
+	hidTouchRead(&pos);
+	
+	return pos.px;
+}
+
+u16 touchGetY(void)
+{
+	touchPosition pos;
+	hidTouchRead(&pos);
+	
+	return pos.py;
+}
