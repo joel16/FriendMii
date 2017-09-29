@@ -13,6 +13,7 @@
 #define STATE_FRIENDLIST 1
 
 #define selector_yDistance 35
+#define LIST_PER_PAGE 3
 
 static int defaultState;
 
@@ -79,11 +80,24 @@ int main(int argc, char **argv)
 	
 	size_t friendCount = 0;
 	FriendKey friendKey[FRIEND_LIST_SIZE];
-	u64 friendCodes[FRIEND_LIST_SIZE];
 	FRD_GetFriendKeyList(friendKey, &friendCount, 0, FRIEND_LIST_SIZE);
 	
-	for (size_t i = 0x0; i < friendCount && i < 0x64; i++) 
+	MiiStoreData friendMii[FRIEND_LIST_SIZE];
+	FRD_GetFriendMii(friendMii, friendKey, FRIEND_LIST_SIZE); 
+	static char friendNames[FRIEND_LIST_SIZE][0x14];
+	
+	bool isValid[FRIEND_LIST_SIZE];
+	
+	u64 friendCodes[FRIEND_LIST_SIZE];
+	for (size_t i = 0x0; i < friendCount; i++) 
+	{
 		FRD_PrincipalIdToFriendCode(friendKey[i].principalId, &friendCodes[i]);
+		FRD_IsValidFriendCode(friendCodes[i], &isValid[i]);
+		u16_to_u8(&friendNames[i][0x14], friendMii[i].name, 0x14);
+	}
+	
+	MiiStoreData miiData;
+	FRD_GetMyMii(&miiData);
 	
 	touchPosition touch;
 	
@@ -111,30 +125,46 @@ int main(int argc, char **argv)
 			case STATE_FRIENDCARD:
 				drawTopScreen(STATE_FRIENDCARD);
 				screen_draw_texture(TEXTURE_GAME_ICON, 55, 64);
-				screen_draw_string(348 - screen_get_string_width(Friend_GetScreenName(), 0.7f, 0.7f), 176, 0.7f, 0.7f, RGBA8(126, 52, 34, 255), Friend_GetScreenName());
+				screen_draw_string(348 - screen_get_string_width(Friend_GetScreenName(), 0.7f, 0.7f), 176, 0.7f, 0.7f, RGBA8(170, 170, 170, 255), Friend_GetScreenName());
 				screen_draw_stringf(348 - (screen_get_string_width("Friend Code: ", 0.5f, 0.5f) + screen_get_string_width("0000 - 0000 - 0000", 0.5f, 0.5f)), 
-							200, 0.5f, 0.5f, RGBA8(140, 138, 138, 255), "Friend Code: %s", Friend_GetFriendKey());
+							200, 0.5f, 0.5f, RGBA8(148, 148, 148, 255), "Friend Code: %s", Friend_GetFriendKey());
 		
-				screen_draw_string(55, 42, 0.6f, 0.6f, RGBA8(82, 82, 82, 255), "Favourite Title:");
+				screen_draw_string(53, 42, 0.6f, 0.6f, RGBA8(82, 82, 82, 255), "Favourite Title:");
 				screen_draw_string(112, 70, 0.5f, 0.5f, RGBA8(82, 82, 82, 255), Friend_GetGameTitle(Friend_GetFavouriteGame()));
 				screen_draw_string(112, 90, 0.5f, 0.5f, RGBA8(82, 82, 82, 255), Friend_GetPlatform(Friend_GetFavouriteGame()));
 		
 				if (!(Friend_GetHideStatus()))
-					screen_draw_string(((400 - screen_get_string_width("Hide online status", 0.55f, 0.55f)) / 2), 221, 0.55f, 0.55f, RGBA8(82, 60, 60, 255), "Hide online status");
+					screen_draw_string(((400 - screen_get_string_width("Hide online status", 0.55f, 0.55f)) / 2), 221, 0.55f, 0.55f, RGBA8(53, 119, 151, 255), "Hide online status");
 				else if (!(Friend_GetHideTitleStatus()))
-					screen_draw_string(((400 - screen_get_string_width("Hide titles being played", 0.55f, 0.55f)) / 2), 221, 0.55f, 0.55f, RGBA8(82, 60, 60, 255), "Hide titles being played");
+					screen_draw_string(((400 - screen_get_string_width("Hide titles being played", 0.55f, 0.55f)) / 2), 221, 0.55f, 0.55f, RGBA8(53, 119, 151, 255), "Hide titles being played");
 				break;
 				
 			case STATE_FRIENDLIST:
 				drawTopScreen(STATE_FRIENDLIST);
 				screen_draw_rect(4, selector_image_y, 392, 35, RGBA8(255, 255, 255, 255));
+				
 				for (size_t i = 0x0; i < friendCount; i++)
-					screen_draw_stringf(10, 30 + (i * 35), 0.5f, 0.5f, RGBA8(82, 82, 82, 255), "Friend #%lu: %s %04llu-%04llu-%04llu", i, friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000);
+				{
+					screen_draw_stringf(10, 30 + (i * 35), 0.5f, 0.5f, RGBA8(255, 255, 255, 255), "%s : %04llu-%04llu-%04llu %s", &friendNames[i], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000, isValid[i]? "Valid" : "Invalid");
+					
+					if (i == (selection - 1))
+						screen_draw_stringf(10, 30 + (i * 35), 0.5f, 0.5f, RGBA8(82, 82, 82, 255), "%s : %04llu-%04llu-%04llu %s", &friendNames[i], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000, isValid[i]? "Valid" : "Invalid");
+				}
 				
 				if (kDown & KEY_DDOWN)
-					selection++;
+				{
+					if (selection < (friendCount))
+						selection++;
+					else 
+						selection = 1;
+				}
 				else if (kDown & KEY_DUP)
-					selection--;
+				{
+					if (selection > 1)
+						selection--;
+					else 
+						selection = friendCount;
+				}
 				
 				if (kHeld & KEY_CPAD_DOWN)
 				{
@@ -147,11 +177,6 @@ int main(int argc, char **argv)
 					selection--;
 				}
 				
-				if (selection > friendCount) 
-					selection = 1;
-				if (selection < 1) 
-					selection = friendCount;
-				
 				break;
 		}
 		
@@ -161,10 +186,12 @@ int main(int argc, char **argv)
 		
 		screen_draw_texture(TEXTURE_NAVIGATION_DRAWER, 0, 0);
 		
-		screen_draw_string(34 + ((252 - screen_get_string_width(Friend_GetMyComment(), 0.5f, 0.5f)) / 2), 64, 0.5f, 0.5f, RGBA8(126, 52, 34, 255), Friend_GetMyComment());
+		screen_draw_string(34 + ((252 - screen_get_string_width(Friend_GetMyComment(), 0.5f, 0.5f)) / 2), 64, 0.5f, 0.5f, RGBA8(82, 82, 82, 255), Friend_GetMyComment());
 		
-		screen_draw_stringf(100, 106, 0.5f, 0.5f, RGBA8(241, 164, 34, 255), "%s", Friend_IsOnline()? "Online" : "Offline");
-		screen_draw_string(220 - screen_get_string_width(Friend_GetScreenName(), 0.5f, 0.5f), 164, 0.5f, 0.5f, RGBA8(126, 52, 34, 255), Friend_GetScreenName());
+		screen_draw_stringf(100, 106, 0.5f, 0.5f, RGBA8(53, 119, 151, 255), "%s", Friend_IsOnline()? "Online" : "Offline");
+		screen_draw_string(220 - screen_get_string_width(Friend_GetScreenName(), 0.5f, 0.5f), 164, 0.5f, 0.5f, RGBA8(148, 148, 148, 255), Friend_GetScreenName());
+		
+		//screen_draw_stringf(10, 200, 0.5f, 0.5f, RGBA8(53, 119, 151, 255), "%02X:%02X:%02X:%02X:%02X:%02X", miiData.mac[0], miiData.mac[1], miiData.mac[2], miiData.mac[3], miiData.mac[4], miiData.mac[5]);
 		
 		screen_end_frame();
 		

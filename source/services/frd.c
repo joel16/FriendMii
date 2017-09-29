@@ -319,13 +319,12 @@ Result FRD_GetFriendMii(MiiStoreData * miiDataList, const FriendKey * friendKeyL
 {
 	Result ret = 0;
 	u32 * cmdbuf = getThreadCommandBuffer();
-	u32 miiSize =  (size * 0x60);
 
 	cmdbuf[0] = IPC_MakeHeader(0x14, 1, 4); // 0x00140044
 	cmdbuf[1] = size;
 	cmdbuf[2] = (size << 18) | 2;
 	cmdbuf[3] = (u32)friendKeyList;
-	cmdbuf[4] = IPC_Desc_Buffer(miiSize, IPC_BUFFER_W);
+	cmdbuf[4] = IPC_Desc_Buffer((size * 0x60), IPC_BUFFER_W);
 	cmdbuf[5] = (u32)miiDataList;
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
@@ -346,6 +345,24 @@ Result FRD_GetFriendProfile(Profile * profileList, const FriendKey * friendKeyLi
 	cmdbuf[3] = (u32)friendKeyList;
 	cmdbuf[64] = (profileSize << 10) | 2;
 	cmdbuf[65] = (u32)profileList;
+
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+
+	return cmdbuf[1];
+}
+
+Result FRD_GetFriendPlayingGame(u64 * titleid, const FriendKey * friendKeyList, size_t size)
+{
+	Result ret = 0;
+	u32 * cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x18, 1, 4); // 0x00180044
+	cmdbuf[1] = 0;
+	cmdbuf[2] = (size << 18) | 2;
+	cmdbuf[3] = (u32)friendKeyList;
+	cmdbuf[4] = (4352 * size) | 0xC;
+	cmdbuf[5] = (u32)titleid;
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
 		return ret;
