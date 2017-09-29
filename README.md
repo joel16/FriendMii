@@ -13,6 +13,7 @@ An open source experimental friends app for the Nintendo 3DS.
 - Screenshot - Press L + R.
 
 # Credits:
+- Ryuzaki-MrL
 - Reisyukaku
 - 3DBrew
 - Preetisketch
