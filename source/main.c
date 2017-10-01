@@ -4,6 +4,7 @@
 #include "frd.h"
 #include "friend.h"
 #include "fs.h"
+#include "mii.h"
 #include "power.h"
 #include "screen.h"
 #include "screenshot.h"
@@ -11,6 +12,7 @@
 
 #define STATE_FRIENDCARD 0
 #define STATE_FRIENDLIST 1
+#define STATE_MII        2
 
 #define selector_yDistance 35
 #define LIST_PER_PAGE 3
@@ -40,12 +42,16 @@ static void initServices(void)
 	screen_load_texture_png(TEXTURE_BATTERY_3, "romfs:/battery/battery_3.png", true);
 	screen_load_texture_png(TEXTURE_BATTERY_4, "romfs:/battery/battery_4.png", true);
 	screen_load_texture_png(TEXTURE_BATTERY_CHARGE, "romfs:/battery/battery_charge.png", true);
-	screen_load_texture_png(TEXTURE_NAVIGATION_DRAWER, "romfs:/drawer.png", true);
+	screen_load_texture_png(TEXTURE_FRIENDS_HOME, "romfs:/ic_material_light_home.png", true);
+	screen_load_texture_png(TEXTURE_FRIENDS_LIST, "romfs:/ic_material_light_filesystem.png", true);
+	screen_load_texture_png(TEXTURE_FRIENDS_MII, "romfs:/ic_fso_type_contact.png", true);
 }
 
 static void termServices(void)
 {
-	screen_unload_texture(TEXTURE_NAVIGATION_DRAWER);
+	screen_unload_texture(TEXTURE_FRIENDS_MII);
+	screen_unload_texture(TEXTURE_FRIENDS_LIST);
+	screen_unload_texture(TEXTURE_FRIENDS_HOME);
 	screen_unload_texture(TEXTURE_BATTERY_CHARGE);
 	screen_unload_texture(TEXTURE_BATTERY_4);
 	screen_unload_texture(TEXTURE_BATTERY_3);
@@ -96,8 +102,12 @@ int main(int argc, char **argv)
 		u16_to_u8(&friendNames[i][0x14], friendMii[i].name, 0x14);
 	}
 	
+	static char mii_name[0x14], mii_author[0x14];
 	MiiStoreData miiData;
 	FRD_GetMyMii(&miiData);
+	
+	u16_to_u8(mii_name, miiData.name, 0x14);
+	u16_to_u8(mii_author, miiData.author, 0x14);
 	
 	touchPosition touch;
 	
@@ -176,7 +186,20 @@ int main(int argc, char **argv)
 					svcSleepThread(50000000);
 					selection--;
 				}
+				break;
 				
+			case STATE_MII:
+				drawTopScreen(STATE_MII);
+				screen_draw_rect(10 + screen_get_string_width("Mii color: ", 0.6f, 0.6f), 91, 16, 16, RGBA8(53, 119, 151, 255));
+				screen_draw_rect(10 + screen_get_string_width("Mii color: ", 0.6f, 0.6f) + 1, 92, 14, 14, MII_GetMiiColour(miiData.color));
+				screen_draw_stringf(10, 30, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii name: %s", mii_name);
+				screen_draw_stringf(10, 50, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii mac address: %02X:%02X:%02X:%02X:%02X:%02X", miiData.mac[0], miiData.mac[1], miiData.mac[2], miiData.mac[3], miiData.mac[4], miiData.mac[5]);
+				screen_draw_stringf(10, 70, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii gender: %s", miiData.gender? "Female" : "Male");
+				screen_draw_string(10, 90, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii color: ");
+				screen_draw_stringf(10, 110, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii Birthday: %d/%d", miiData.bday_month, miiData.bday_day);
+				screen_draw_stringf(10, 130, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii favorite: %s", miiData.favorite? "Yes" : "No");
+				screen_draw_stringf(10, 150, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii copying: %s", miiData.copyable? "Enabled" : "Disabled");
+				screen_draw_stringf(10, 170, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii sharing: %s", miiData.disable_sharing? "Disabled" : "Enabled");
 				break;
 		}
 		
@@ -184,7 +207,11 @@ int main(int argc, char **argv)
 		
 		drawBottomScreen();
 		
-		screen_draw_texture(TEXTURE_NAVIGATION_DRAWER, 0, 0);
+		screen_draw_rect((34 * defaultState), 0, 34, 26, RGBA8(53, 119, 151, 255));
+		
+		screen_draw_texture(TEXTURE_FRIENDS_HOME, 4, 0);
+		screen_draw_texture(TEXTURE_FRIENDS_LIST, 38, 0);
+		screen_draw_texture(TEXTURE_FRIENDS_MII, 72, 0);
 		
 		screen_draw_string(34 + ((252 - screen_get_string_width(Friend_GetMyComment(), 0.5f, 0.5f)) / 2), 64, 0.5f, 0.5f, RGBA8(82, 82, 82, 255), Friend_GetMyComment());
 		
@@ -198,12 +225,14 @@ int main(int argc, char **argv)
 		if (kDown & KEY_START)
 			break;
 		
-		if ((kDown & KEY_TOUCH) && (touchInRect(0, 26, 0, 26)))
+		if ((kDown & KEY_TOUCH))
 		{
-			if (defaultState == 0)
-				defaultState = STATE_FRIENDLIST;
-			else if (defaultState == 1)
+			if (touchInRect(4, 34, 0, 26))
 				defaultState = STATE_FRIENDCARD;
+			else if (touchInRect(38, 68, 0, 26))
+				defaultState = STATE_FRIENDLIST;
+			else if (touchInRect(72, 102, 0, 26))
+				defaultState = STATE_MII;
 		}
 		
 		if ((kHeld & KEY_L) && (kHeld & KEY_R))

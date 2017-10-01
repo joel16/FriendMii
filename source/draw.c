@@ -38,6 +38,13 @@ void drawTopScreen(int state)
 		case 1:
 			screen_draw_rect(0, 20, 400, 220, RGBA8(45, 45, 45, 255));
 			screen_draw_rect(4, 24, 392, 210, RGBA8(80, 80, 80, 255));
+			break;
+			
+		case 2:
+			screen_draw_rect(0, 20, 400, 220, RGBA8(45, 45, 45, 255));
+			screen_draw_rect(2, 22, 396, 216, RGBA8(53, 119, 151, 255));
+			screen_draw_rect(4, 24, 392, 212, RGBA8(216, 216, 216, 255));
+			break;
 	}
 }
 
