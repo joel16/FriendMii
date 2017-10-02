@@ -93,7 +93,7 @@ typedef struct
         struct 
 		{
             u8 _unk_0x00;
-            u8 copyable;
+            u8 copyable; // 0 = not copyable, and 1 = copyable
             MiiPosition position;
             u8 category;
         };
@@ -125,11 +125,11 @@ typedef struct
     u8 mac[6];
     u8 _pad_0x16[2];
 
-    u16 gender : 1;
+    u16 gender : 1; // 0 = male, 1 = female
     u16 bday_month : 4;
     u16 bday_day : 5;
-    u16 color : 4;
-    u16 favorite : 1;
+    u16 color : 4; // 0 = Red, 1 = Orange, 2 = Yellow, 3 = Lime green, 4 = Green, 5 = Blue, 6 = Neon blue, 7 = Pink, 8 = Purple, 9 = Brown, 10 = White, and 11 = Black.
+    u16 favorite : 1; // 0 = No, and 1 = Yes.
     u16 _unk_0x19 : 1;
 
     u16 name[0x14];
@@ -137,7 +137,7 @@ typedef struct
     u8 width;
     u8 height;
 
-    u8 disable_sharing : 1;
+    u8 disable_sharing : 1; // 0 = Sharing enabled, and 1 = Sharing disabled.
     u8 face_shape : 4;
     u8 skin_color : 3;
 

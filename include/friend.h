@@ -1,7 +1,7 @@
 #ifndef FRIEND_H
 #define FRIEND_H
 
-#define TEXTURE_GAME_ICON 6
+#define TEXTURE_GAME_ICON 5
 
 typedef enum 
 {
