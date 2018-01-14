@@ -1,6 +1,6 @@
 #include "utils.h"
 
-bool isN3DS(void)
+bool Utils_IsN3DS(void)
 {
 	bool isNew3DS = false;
 	

@@ -1,6 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "frd.h"
 #include "friend.h"
-#include "screen.h"
+#include "pp2d.h"
 #include "utils.h"
 
 bool Friend_IsOnline(void)
@@ -113,47 +116,49 @@ u64 Friend_GetFavouriteGame(void)
 	return 0;
 }
 
-bool Friend_IsFromFriendList(u64 friendCode)
+bool Friend_IsFromFriendList(FriendKey * friendKeyList)
 {
 	bool isFromList = false;
 	
-	if (R_SUCCEEDED(FRD_IsFromFriendList(friendCode, &isFromList)))
+	if (R_SUCCEEDED(FRD_IsFromFriendList(friendKeyList, &isFromList)))
 		return isFromList;
 	
 	return false;
 }
 
-static Result parseSMDH(u64 titleId, SMDH * smdh) 
+static Result parseSMDH(u64 titleId, bool isGame, smdh_s * smdh) 
 {
 	Handle handle;
-	
+	Result ret = 0;
+
 	FS_MediaType mediaType = 0;
 	
 	if (((titleId / 1000000000) % 10) == 9)
 		mediaType = MEDIATYPE_SD;
 	else if (((titleId / 1000000000) % 10) == 8)
 		mediaType = MEDIATYPE_NAND;
-	else 
+
+	if (isGame)
 		mediaType = MEDIATYPE_GAME_CARD;
-	
-	static const u32 filePath[] = {0x00000000, 0x00000000, 0x00000002, 0x6E6F6369, 0x00000000};
-	u32 archivePath[] = {(u32) (titleId & 0xFFFFFFFF), (u32) ((titleId >> 32) & 0xFFFFFFFF), mediaType, 0x00000000};
-	FS_Path archiveBinPath = {PATH_BINARY, sizeof(archivePath), archivePath};
-	FS_Path fileBinPath = {PATH_BINARY, sizeof(filePath), filePath};
-	
-	if (R_SUCCEEDED(FSUSER_OpenFileDirectly(&handle, ARCHIVE_SAVEDATA_AND_CONTENT, archiveBinPath, fileBinPath, FS_OPEN_READ, 0))) 
+
+	u32 archPath[] = {(u32)titleId, (u32)(titleId >> 32), mediaType, 0x0};
+	static const u32 filePath[] = {0x0, 0x0, 0x2, 0x6E6F6369, 0x0};
+
+	FS_Path binArchPath = {PATH_BINARY, 0x10, archPath};
+	FS_Path binFilePath = {PATH_BINARY, 0x14, filePath};
+
+	if (R_SUCCEEDED(ret = FSUSER_OpenFileDirectly(&handle, ARCHIVE_SAVEDATA_AND_CONTENT, binArchPath, binFilePath, FS_OPEN_READ, 0)))
 	{
 		u32 bytesRead = 0;
-		
-		if (R_SUCCEEDED(FSFILE_Read(handle, &bytesRead, 0, smdh, sizeof(SMDH))) && bytesRead == sizeof(SMDH)) 
-		{
-			if (smdh->magic[0] == 'S' && smdh->magic[1] == 'M' && smdh->magic[2] == 'D' && smdh->magic[3] == 'H') 
-				return FSFILE_Close(handle);
-		}
-		
-		return FSFILE_Close(handle);
-	}	
-	
+
+		if (R_SUCCEEDED(ret = FSFILE_Read(handle, &bytesRead, 0, smdh, sizeof(smdh_s))))
+			return FSFILE_Close(handle);
+		else 
+			return ret;
+	}
+	else
+		return ret;
+
 	return 0;
 }
 
@@ -167,34 +172,57 @@ static CFG_Language getLanguage()
 
 char * Friend_GetGameTitle(u64 titleId)
 {
-	SMDH smdh;
+	smdh_s smdh;
 	
 	static char shortDesc[0x41] = {'\0'};
 	
-	if (R_SUCCEEDED(parseSMDH(titleId, &smdh)))
-		u16_to_u8(shortDesc, smdh.titles[getLanguage()].shortDescription, 0x41);
+	if (R_SUCCEEDED(parseSMDH(titleId, false, &smdh)))
+		u16_to_u8(shortDesc, smdh.applicationTitles[getLanguage()].shortDescription, 0x41);
 	
 	return shortDesc;
 }
 
 char * Friend_GetGameDesc(u64 titleId)
 {
-	SMDH smdh;
+	smdh_s smdh;
 	
 	static char longDesc[0x81] = {'\0'};
 	
-	if (R_SUCCEEDED(parseSMDH(titleId, &smdh)))
-		u16_to_u8(longDesc, smdh.titles[getLanguage()].longDescription, 0x81);
+	if (R_SUCCEEDED(parseSMDH(titleId, false, &smdh)))
+		u16_to_u8(longDesc, smdh.applicationTitles[getLanguage()].longDescription, 0x81);
 	
 	return longDesc;
 }
 
 void Friend_GetGameIcon(u64 titleId)
 {
-	SMDH smdh;
+	smdh_s smdh;
 	
-	if (R_SUCCEEDED(parseSMDH(titleId, &smdh)))
-		screen_load_texture_tiled(TEXTURE_GAME_ICON, smdh.largeIcon, sizeof(smdh.largeIcon), 48, 48, GPU_RGB565, false);
+	if (R_SUCCEEDED(parseSMDH(titleId, false, &smdh)))
+	{
+		static const u32 width = 48, height = 48;
+		u32 *image = (u32*)malloc(width*height*sizeof(u32));
+
+		for (u32 x = 0; x < width; x++)
+		{
+			for (u32 y = 0; y < height; y++)
+			{
+				unsigned int dest_pixel = (x + y*width);
+				unsigned int source_pixel = (((y >> 3) * (width >> 3) + (x >> 3)) << 6) + ((x & 1) | ((y & 1) << 1) | ((x & 2) << 1) | ((y & 2) << 2) | ((x & 4) << 2) | ((y & 4) << 3));
+
+				u8 r = ((smdh.bigIconData[source_pixel] >> 11) & 0b11111) << 3;
+				u8 g = ((smdh.bigIconData[source_pixel] >> 5) & 0b111111) << 2;
+				u8 b = (smdh.bigIconData[source_pixel] & 0b11111) << 3;
+				u8 a = 0xFF;
+
+				image[dest_pixel] = (r << 24) | (g << 16) | (b << 8) | a;
+			}
+		}
+
+		pp2d_load_texture_memory(TEXTURE_GAME_ICON, (u8*)image, (u32)width, (u32)height);
+
+		free(image);
+	}
 }
 
 static AppPlatform platformFromId(u16 id)

@@ -1,8 +1,6 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-#include <3ds.h>
-
 #define TEXTURE_FRIENDS_HOME 6
 #define TEXTURE_FRIENDS_LIST 7
 #define TEXTURE_FRIENDS_MII  8
