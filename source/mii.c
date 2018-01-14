@@ -1,5 +1,5 @@
 #include "mii.h"
-#include "screen.h"
+#include "pp2d.h"
 
 u32 MII_GetMiiColour(u16 colour)
 {
