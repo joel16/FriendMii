@@ -33,130 +33,28 @@ typedef struct
    wchar_t modeDescription[0x80];
 } MyPresence;
 
-/*
-	The following Mii data struct is from SpecializeMii.
-*/
-typedef enum MII_SPECIALNESS_t 
-{
-    MII_SPECIAL    = 0,
-    MII_NONSPECIAL = 1,
-} MII_SPECIALNESS;
+#pragma pack(1)
 
-typedef enum MII_COPYABLE_t 
-{
-    MII_COPYABLE_OFF = 0,
-    MII_COPYABLE_ON  = 1,
-} MII_COPYABLE;
-
-typedef enum MII_SHAREABLE_t 
-{
-    MII_SHAREABLE_ON  = 0,
-    MII_SHAREABLE_OFF = 1,
-} MII_SHAREABLE;
-
-/* Fuck yeah! Bitfields and compiler dependent struct padding!
- *
- * This is absolutely *NOT* portable in any way, shape or form.
- * */
-
-typedef union MiiPosition_t 
-{
-    u8 raw;
-    struct 
-	{
-        u8 page : 4;
-        u8 slot : 4;
-    };
-} MiiPosition;
-
-typedef union MiiEyebrow_t 
-{
-	u32 raw;
-    struct 
-	{
-        u32 rotation : 4;
-        u32 _unk_bit_4 : 1;
-        u32 xspacing : 4;
-        u32 ypos : 5;
-        u32 _unk_bit_14_15 : 2;
-        u32 style : 5;
-        u32 color : 3;
-        u32 xscale : 4;
-        u32 yscale : 4;
-    };
-} MiiEyebrow;
-
-typedef struct
-{
-    union 
-	{
-        struct 
-		{
-            u8 _unk_0x00;
-            u8 copyable; // 0 = not copyable, and 1 = copyable
-            MiiPosition position;
-            u8 category;
-        };
-        u32 mii_id;
-    };
-    
-	u32 sys_id;
-    u32 _unk_0x08;
-
-    union 
-	{
-        // This unsigned 32bit integer is stored in big-endian and holds the
-        // date of creation in its lower 28 bit:
-        //
-        // seconds since 01/01/2010 00:00:00
-        //   = (date_of_creation[bit 0 .. bit 27]) * 2
-        u32 date_of_creation;
-
-        // Non special Miis have bit 31 of aforementioned big-endian word set,
-        // which corresponds to bit 8 in little endian, which the 3DS uses.
-        struct 
-		{
-            u32 : 7;
-            u32 specialness : 1;
-            u32 : 24;
-        };
-    };
-
-    u8 mac[6];
-    u8 _pad_0x16[2];
-
-    u16 gender : 1; // 0 = male, 1 = female
-    u16 bday_month : 4;
-    u16 bday_day : 5;
-    u16 color : 4; // 0 = Red, 1 = Orange, 2 = Yellow, 3 = Lime green, 4 = Green, 5 = Blue, 6 = Neon blue, 7 = Pink, 8 = Purple, 9 = Brown, 10 = White, and 11 = Black.
-    u16 favorite : 1; // 0 = No, and 1 = Yes.
-    u16 _unk_0x19 : 1;
-
-    u16 name[0x14];
-
+typedef struct {
+    u32 mii_id;
+    u64 system_id;
+    u32 cdate;
+    u8 mac[0x6];
+    u16 padding;
+    u16 misc1;
+    u16 mii_name[0xB];
     u8 width;
     u8 height;
-
-    u8 disable_sharing : 1; // 0 = Sharing enabled, and 1 = Sharing disabled.
-    u8 face_shape : 4;
-    u8 skin_color : 3;
-
-    u8 wrinkles : 4;
-    u8 makeup : 4;
-
-    u8 hair_style;
-    u8 hair_color : 3;
-    u8 hair_flip : 1;
-    
-	u8 _unk_0x33 : 4;
-    u32 _unk_0x34;
-
-    MiiEyebrow eyebrow;
-
-    u8 _unk_0x3c[12];
-
-    u16 author[0x14];
+    u32 misc2;
+    u32 unknown1;
+    u32 misc3;
+    u32 unknown2;
+    u8 allow_copy;
+    u8 unknown3[0x7];
+    u16 author[0xB];
 } MiiStoreData;
+
+#pragma pop
 
 typedef struct
 {

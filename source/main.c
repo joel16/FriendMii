@@ -89,8 +89,9 @@ int main(int argc, char **argv)
 	FRD_GetFriendKeyList(friendKey, &friendCount, 0, FRIEND_LIST_SIZE);
 	
 	MiiStoreData friendMii[FRIEND_LIST_SIZE];
+    char friendNames[FRIEND_LIST_SIZE * 0xB];
+	char friendAuthor[FRIEND_LIST_SIZE * 0xB];
 	FRD_GetFriendMii(friendMii, friendKey, FRIEND_LIST_SIZE); 
-	static char friendNames[FRIEND_LIST_SIZE][0x14];
 	
 	bool isValid[FRIEND_LIST_SIZE];
 	
@@ -99,14 +100,17 @@ int main(int argc, char **argv)
 	{
 		FRD_PrincipalIdToFriendCode(friendKey[i].principalId, &friendCodes[i]);
 		FRD_IsValidFriendCode(friendCodes[i], &isValid[i]);
-		u16_to_u8(&friendNames[i][0x14], friendMii[i].name, 0x14);
+		u16_to_u8(&friendNames[i * 0xB], friendMii[i].mii_name, 0xB);
+		friendNames[i * 0xB + 10] = 0;
+		u16_to_u8(&friendAuthor[i * 0xB], friendMii[i].mii_name, 0xB);
+		friendAuthor[i * 0xB + 10] = 0;
 	}
 	
 	static char mii_name[0x14], mii_author[0x14];
 	MiiStoreData miiData;
 	FRD_GetMyMii(&miiData);
 	
-	u16_to_u8(mii_name, miiData.name, 0x14);
+	u16_to_u8(mii_name, miiData.mii_name, 0x14);
 	u16_to_u8(mii_author, miiData.author, 0x14);
 	
 	touchPosition touch;
@@ -155,10 +159,10 @@ int main(int argc, char **argv)
 				
 				for (size_t i = 0x0; i < friendCount; i++)
 				{
-					screen_draw_stringf(10, 30 + (i * 35), 0.5f, 0.5f, RGBA8(255, 255, 255, 255), "%s : %04llu-%04llu-%04llu %s", &friendNames[i], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000, isValid[i]? "Valid" : "Invalid");
+					screen_draw_stringf(10, 30 + (i * 35), 0.5f, 0.5f, RGBA8(255, 255, 255, 255), "%s : %04llu-%04llu-%04llu %02X:%02X:%02X:%02X:%02X:%02X", &friendNames[i * 0xB], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000, friendMii[i].mac[0], friendMii[i].mac[1], friendMii[i].mac[2], friendMii[i].mac[3], friendMii[i].mac[4], friendMii[i].mac[5] /*isValid[i]? "Valid" : "Invalid"*/);
 					
 					if (i == (selection - 1))
-						screen_draw_stringf(10, 30 + (i * 35), 0.5f, 0.5f, RGBA8(82, 82, 82, 255), "%s : %04llu-%04llu-%04llu %s", &friendNames[i], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000, isValid[i]? "Valid" : "Invalid");
+						screen_draw_stringf(10, 30 + (i * 35), 0.5f, 0.5f, RGBA8(82, 82, 82, 255), "%s : %04llu-%04llu-%04llu %02X:%02X:%02X:%02X:%02X:%02X", &friendNames[i * 0xB], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000, friendMii[i].mac[0], friendMii[i].mac[1], friendMii[i].mac[2], friendMii[i].mac[3], friendMii[i].mac[4], friendMii[i].mac[5] /*isValid[i]? "Valid" : "Invalid"*/);
 				}
 				
 				if (kDown & KEY_DDOWN)
@@ -190,7 +194,7 @@ int main(int argc, char **argv)
 				
 			case STATE_MII:
 				drawTopScreen(STATE_MII);
-				screen_draw_rect(10 + screen_get_string_width("Mii color: ", 0.6f, 0.6f), 91, 16, 16, RGBA8(53, 119, 151, 255));
+				/*screen_draw_rect(10 + screen_get_string_width("Mii color: ", 0.6f, 0.6f), 91, 16, 16, RGBA8(53, 119, 151, 255));
 				screen_draw_rect(10 + screen_get_string_width("Mii color: ", 0.6f, 0.6f) + 1, 92, 14, 14, MII_GetMiiColour(miiData.color));
 				screen_draw_stringf(10, 30, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii name: %s", mii_name);
 				screen_draw_stringf(10, 50, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii mac address: %02X:%02X:%02X:%02X:%02X:%02X", miiData.mac[0], miiData.mac[1], miiData.mac[2], miiData.mac[3], miiData.mac[4], miiData.mac[5]);
@@ -199,7 +203,7 @@ int main(int argc, char **argv)
 				screen_draw_stringf(10, 110, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii Birthday: %d/%d", miiData.bday_month, miiData.bday_day);
 				screen_draw_stringf(10, 130, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii favorite: %s", miiData.favorite? "Yes" : "No");
 				screen_draw_stringf(10, 150, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii copying: %s", miiData.copyable? "Enabled" : "Disabled");
-				screen_draw_stringf(10, 170, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii sharing: %s", miiData.disable_sharing? "Disabled" : "Enabled");
+				screen_draw_stringf(10, 170, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii sharing: %s", miiData.disable_sharing? "Disabled" : "Enabled");*/
 				break;
 		}
 		
