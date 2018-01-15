@@ -5,6 +5,19 @@
 
 #define TEXTURE_GAME_ICON 5
 
+#define TEXTURE_COLOUR_RED        9
+#define TEXTURE_COLOUR_ORANGE     10
+#define TEXTURE_COLOUR_YELLOW     11
+#define TEXTURE_COLOUR_LIME_GREEN 12
+#define TEXTURE_COLOUR_GREEN      13
+#define TEXTURE_COLOUR_BLUE       14
+#define TEXTURE_COLOUR_LIGHT_BLUE 15
+#define TEXTURE_COLOUR_PINK       16
+#define TEXTURE_COLOUR_PURPLE     17
+#define TEXTURE_COLOUR_BROWN      18
+#define TEXTURE_COLOUR_WHITE      19
+#define TEXTURE_COLOUR_BLACK      20
+
 typedef enum 
 {
 	PLATFORM_WII,
@@ -60,5 +73,6 @@ char * Friend_GetGameDesc(u64 titleId);
 void Friend_GetGameIcon(u64 titleId);
 char * Friend_GetPlatform(u64 titleId);
 bool Friend_IsValidFriendCode(u64 friendCode);
+size_t Friend_GetFriendColour(u16 colour);
 
 #endif

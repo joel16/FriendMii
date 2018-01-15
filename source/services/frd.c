@@ -1,5 +1,4 @@
 #include <string.h>
-#include <wchar.h>
 
 #include "frd.h"
 
@@ -303,6 +302,24 @@ Result FRD_GetFriendProfile(Profile * profileList, const FriendKey * friendKeyLi
 	return (Result)cmdbuf[1];
 }
 
+Result FRD_GetFriendAttributeFlags(AttributeFlag* attributeFlags, const FriendKey* friendKeyList, size_t size)
+{
+	Result ret = 0;
+	u32 * cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x17, 1, 2); // 0x00170042
+	cmdbuf[1] = 0;
+	cmdbuf[2] = (size << 18) | 2;
+	cmdbuf[3] = (u32)friendKeyList;
+	cmdbuf[4] = IPC_Desc_Buffer(size, IPC_BUFFER_W);
+	cmdbuf[65] = (u32)attributeFlags;
+
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+
+	return (Result)cmdbuf[1];
+}
+
 Result FRD_GetFriendPlayingGame(u64 * titleid, const FriendKey * friendKeyList, size_t size)
 {
 	Result ret = 0;
@@ -338,7 +355,7 @@ Result FRD_IsFromFriendList(FriendKey * friendKeyList, bool * isFromList)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_UpdateGameModeDescription(const wchar_t * desc)
+Result FRD_UpdateGameModeDescription(u16 * desc)
 {
 	Result ret = 0;
 	u32 * cmdbuf = getThreadCommandBuffer();
@@ -348,6 +365,22 @@ Result FRD_UpdateGameModeDescription(const wchar_t * desc)
 	cmdbuf[2] = (uintptr_t)desc;
     
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result FRD_UpdateGameMode(const GameMode * gameMode, u16 * desc)
+{
+	Result ret = 0;
+	u32 * cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x1E, 0xB, 2); // 0x001E02C2
+    memcpy(&cmdbuf[1], gameMode, 0x2C);
+    cmdbuf[12] = 0x400802;
+    cmdbuf[13] = (uintptr_t)desc;
+  
+    if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
 		return ret;
 
 	return (Result)cmdbuf[1];

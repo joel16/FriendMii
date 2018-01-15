@@ -1,18 +1,6 @@
 #include "draw.h"
 #include "power.h"
 #include "pp2d.h"
-#include "status_bar.h"
-
-void drawTopBar(void) // to make the main function look cleaner I guess
-{
-	u32 width = 0;
-	
-	pp2d_draw_rectangle(0, 0, 400, 20, RGBA8(164, 164, 164, 255));
-	
-	StatusBar_DisplayBar();
-	
-	pp2d_draw_textf(5, 3, 0.5f, 0.5f, RGBA8(0, 0, 0, 255), "FriendMii v%d.%02d", VERSION_MAJOR, VERSION_MINOR);
-}
 
 void drawTopScreen(int state)
 {

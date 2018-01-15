@@ -270,3 +270,50 @@ bool Friend_IsValidFriendCode(u64 friendCode)
 	
 	return false;
 }
+
+size_t Friend_GetFriendColour(u16 colour)
+{
+	size_t id = -1;
+
+	switch (colour)
+	{
+		case 0:
+			id = TEXTURE_COLOUR_RED;
+			break;
+		case 1:
+			id = TEXTURE_COLOUR_ORANGE;
+			break;
+		case 2:
+			id = TEXTURE_COLOUR_YELLOW;
+			break;
+		case 3:
+			id = TEXTURE_COLOUR_LIME_GREEN;
+			break;
+		case 4:
+			id = TEXTURE_COLOUR_GREEN;
+			break;
+		case 5:
+			id = TEXTURE_COLOUR_BLUE;
+			break;
+		case 6:
+			id = TEXTURE_COLOUR_LIGHT_BLUE;
+			break;
+		case 7:
+			id = TEXTURE_COLOUR_PINK;
+			break;
+		case 8:
+			id = TEXTURE_COLOUR_PURPLE;
+			break;
+		case 9:
+			id = TEXTURE_COLOUR_BROWN;
+			break;
+		case 10:
+			id = TEXTURE_COLOUR_WHITE;
+			break;
+		case 11:
+			id = TEXTURE_COLOUR_BLACK;
+			break;
+	}
+
+	return id;
+}

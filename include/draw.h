@@ -7,7 +7,6 @@
 
 int STATE_NAVIGATION_MENU;
 
-void drawTopBar(void);
 void drawTopScreen(int state);
 void drawBottomScreen(void);
 

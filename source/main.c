@@ -10,6 +10,7 @@
 #include "power.h"
 #include "pp2d.h"
 #include "screenshot.h"
+#include "status_bar.h"
 #include "utils.h"
 
 #define STATE_FRIENDCARD 0
@@ -20,6 +21,7 @@
 #define LIST_PER_PAGE 6
 
 static int defaultState;
+size_t TEXTURE_COLOUR[12];
 
 static void Init_Services(void)
 {
@@ -42,10 +44,36 @@ static void Init_Services(void)
 	pp2d_load_texture_png(TEXTURE_FRIENDS_HOME, "romfs:/ic_material_light_home.png");
 	pp2d_load_texture_png(TEXTURE_FRIENDS_LIST, "romfs:/ic_material_light_filesystem.png");
 	pp2d_load_texture_png(TEXTURE_FRIENDS_MII, "romfs:/ic_fso_type_contact.png");
+
+	pp2d_load_texture_png(TEXTURE_COLOUR_RED, "romfs:/colour/ic_colour_red.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_ORANGE, "romfs:/colour/ic_colour_orange.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_YELLOW, "romfs:/colour/ic_colour_yellow.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_LIME_GREEN, "romfs:/colour/ic_colour_lime_green.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_GREEN, "romfs:/colour/ic_colour_green.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_BLUE, "romfs:/colour/ic_colour_blue.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_LIGHT_BLUE, "romfs:/colour/ic_colour_light_blue.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_PINK, "romfs:/colour/ic_colour_pink.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_PURPLE, "romfs:/colour/ic_colour_purple.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_BROWN, "romfs:/colour/ic_colour_brown.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_WHITE, "romfs:/colour/ic_colour_white.png");
+	pp2d_load_texture_png(TEXTURE_COLOUR_BLACK, "romfs:/colour/ic_colour_black.png");
 }
 
 static void Term_Services(void)
 {
+	pp2d_free_texture(TEXTURE_COLOUR_BLACK);
+	pp2d_free_texture(TEXTURE_COLOUR_WHITE);
+	pp2d_free_texture(TEXTURE_COLOUR_BROWN);
+	pp2d_free_texture(TEXTURE_COLOUR_PURPLE);
+	pp2d_free_texture(TEXTURE_COLOUR_PINK);
+	pp2d_free_texture(TEXTURE_COLOUR_LIGHT_BLUE);
+	pp2d_free_texture(TEXTURE_COLOUR_BLUE);
+	pp2d_free_texture(TEXTURE_COLOUR_GREEN);
+	pp2d_free_texture(TEXTURE_COLOUR_LIME_GREEN);
+	pp2d_free_texture(TEXTURE_COLOUR_YELLOW);
+	pp2d_free_texture(TEXTURE_COLOUR_ORANGE);
+	pp2d_free_texture(TEXTURE_COLOUR_RED);
+
 	pp2d_free_texture(TEXTURE_FRIENDS_MII);
 	pp2d_free_texture(TEXTURE_FRIENDS_LIST);
 	pp2d_free_texture(TEXTURE_FRIENDS_HOME);
@@ -76,8 +104,10 @@ int main(int argc, char **argv)
 	size_t friendCount = 0;
 	FriendKey friendKey[FRIEND_LIST_SIZE];
 	Profile profileList[FRIEND_LIST_SIZE];
+	FriendPresence friendPresenceList[FRIEND_LIST_SIZE];
 	FRD_GetFriendKeyList(friendKey, &friendCount, 0, FRIEND_LIST_SIZE);
 	FRD_GetFriendProfile(profileList, friendKey, FRIEND_LIST_SIZE);
+	//FRD_GetFriendPresence(friendPresenceList, friendKey, FRIEND_LIST_SIZE);
 	
 	MiiStoreData friendMii[FRIEND_LIST_SIZE];
     char friendNames[FRIEND_LIST_SIZE * 0xB];
@@ -118,8 +148,9 @@ int main(int argc, char **argv)
 		u32 kHeld = hidKeysHeld();
 		
 		pp2d_begin_draw(GFX_TOP, GFX_LEFT);
-		
-			drawTopBar();
+			pp2d_draw_rectangle(0, 0, 400, 20, RGBA8(164, 164, 164, 255));
+			StatusBar_DisplayBar();
+			pp2d_draw_textf(5, 3, 0.5f, 0.5f, RGBA8(0, 0, 0, 255), "FriendMii v%d.%02d 0x%lx", VERSION_MAJOR, VERSION_MINOR);
 
 			switch(defaultState)
 			{
@@ -155,7 +186,9 @@ int main(int argc, char **argv)
 							if (i == selection)
 								pp2d_draw_rectangle(4, 22 + (selector_yDistance * printed), 392, 35, RGBA8(255, 255, 255, 255));
 
-							pp2d_draw_textf(10, 30 + (selector_yDistance * printed), 0.5f, 0.5f, i == selection? RGBA8(82, 82, 82, 255) : RGBA8(255, 255, 255, 255), "%s : %04llu-%04llu-%04llu", &friendNames[i * 0xB], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000/*, isValid[i]? "Valid" : "Invalid"*/);
+							pp2d_draw_texture(Friend_GetFriendColour(friendMii[i].colour), 10, 25 + (selector_yDistance * printed));
+
+							pp2d_draw_textf(50, 30 + (selector_yDistance * printed), 0.5f, 0.5f, i == selection? RGBA8(82, 82, 82, 255) : RGBA8(255, 255, 255, 255), "%s : %04llu-%04llu-%04llu", &friendNames[i * 0xB], friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000);
 
 							printed++; // Increase printed counter
 						}
@@ -210,11 +243,9 @@ int main(int argc, char **argv)
 					pp2d_draw_textf(10, 170, 0.6f, 0.6f, RGBA8(53, 119, 151, 255), "Mii sharing: %s", miiData.disable_sharing? "Disabled" : "Enabled");*/
 					break;
 			}
-		
 		pp2d_end_draw();
 
 		pp2d_begin_draw(GFX_BOTTOM, GFX_LEFT);
-		
 			switch(defaultState)
 			{
 				case STATE_FRIENDCARD:
@@ -229,13 +260,14 @@ int main(int argc, char **argv)
 				case STATE_FRIENDLIST:
 					drawBottomScreen();
 
+					float width =  friendMii[selection].gender? pp2d_get_text_width("♀ ", 0.5f, 0.5f) : pp2d_get_text_width("♂ ", 0.5f, 0.5f);
 					//pp2d_draw_text(34 + ((252 - pp2d_get_text_width(Friend_GetMyComment(), 0.6f, 0.6f)) / 2), 60, 0.6f, 0.6f, RGBA8(82, 82, 82, 255), Friend_GetMyComment());
 		
 					//pp2d_draw_textf(100, 106, 0.5f, 0.5f, RGBA8(53, 119, 151, 255), "%s", Friend_IsOnline()? "Online" : "Offline");
-					pp2d_draw_text(220 - pp2d_get_text_width(&friendNames[selection * 0xB], 0.5f, 0.5f), 164, 0.5f, 0.5f, RGBA8(148, 148, 148, 255), &friendNames[selection * 0xB]);
+					pp2d_draw_textf(220 - (pp2d_get_text_width(&friendNames[selection * 0xB], 0.5f, 0.5f) + width), 164, 0.5f, 0.5f, RGBA8(148, 148, 148, 255), "%s %s", &friendNames[selection * 0xB], friendMii[selection].gender? "♀" : "♂");
 
 					if (!isFromList[selection])
-					pp2d_draw_text(((320 - pp2d_get_text_width("This person does not have you added", 0.55f, 0.55f)) / 2), 190, 0.55f, 0.55f, RGBA8(53, 119, 151, 255), "This person does not have you added");
+						pp2d_draw_text(((320 - pp2d_get_text_width("This person does not have you added", 0.55f, 0.55f)) / 2), 190, 0.55f, 0.55f, RGBA8(53, 119, 151, 255), "This person does not have you added");
 					break;
 			}
 
@@ -243,7 +275,6 @@ int main(int argc, char **argv)
 			pp2d_draw_texture(TEXTURE_FRIENDS_HOME, 4, 0);
 			pp2d_draw_texture(TEXTURE_FRIENDS_LIST, 38, 0);
 			//pp2d_draw_texture(TEXTURE_FRIENDS_MII, 72, 0);
-		
 		pp2d_end_draw();
 		
 		if (kDown & KEY_START)

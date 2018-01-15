@@ -10,6 +10,13 @@
 #define FRIEND_LIST_SIZE 0x64 // 100
 #define FRIEND_MII_STORE_DATA_SIZE 0x60 // 96
 
+enum AttributeFlag
+{
+   ATTRIBUTE_FLAG_ESTABLISHED = 1 << 0, //!< a friend relationship has been established at least once.
+   ATTRIBUTE_FLAG_REMOTE_ACCESSIBLE = 1 << 1 //!< local host can access the resources of friends when the friends are online.
+};
+typedef enum AttributeFlag AttributeFlag;
+
 typedef struct
 {
    u32 principalId;
@@ -31,7 +38,7 @@ typedef struct
 typedef struct
 {
    GameMode gameMode;
-   wchar_t modeDescription[0x80];
+   u16 modeDescription[0x80];
 } MyPresence;
 
 typedef struct
@@ -104,9 +111,11 @@ Result FRD_GetFriendKeyList(FriendKey * friendKeyList, size_t * num, size_t offs
 Result FRD_GetFriendPresence(FriendPresence* FriendPresenceList, const FriendKey* friendKeyList, size_t size);
 Result FRD_GetFriendMii(MiiStoreData * miiDataList, const FriendKey * friendKeyList, size_t size);
 Result FRD_GetFriendProfile(Profile * profileList, const FriendKey * friendKeyList, size_t size);
+Result FRD_GetFriendAttributeFlags(AttributeFlag* attributeFlags, const FriendKey* friendKeyList, size_t size);
 Result FRD_GetFriendPlayingGame(u64 * titleid, const FriendKey * friendKeyList, size_t size);
 Result FRD_IsFromFriendList(FriendKey * friendKeyList, bool * isFromList);
-Result FRD_UpdateGameModeDescription(const wchar_t * desc);
+Result FRD_UpdateGameModeDescription(u16 * desc);
+Result FRD_UpdateGameMode(const GameMode *gameMode, u16 * desc);
 Result FRD_PrincipalIdToFriendCode(u32 principalId, u64 * friendCode);
 Result FRD_FriendCodeToPrincipalId(u64 friendCode, u32 * principalId);
 Result FRD_IsValidFriendCode(u64 friendCode, bool * isValid);
