@@ -12,9 +12,9 @@
 
 typedef struct
 {
-	u32 principalId;
+   u32 principalId;
    u32 padding;
-	u64 localFriendCode;
+   u64 localFriendCode;
 } FriendKey;
 
 typedef struct
