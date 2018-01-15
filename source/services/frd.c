@@ -376,11 +376,11 @@ Result FRD_UpdateGameMode(const GameMode * gameMode, u16 * desc)
 	u32 * cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x1E, 0xB, 2); // 0x001E02C2
-    memcpy(&cmdbuf[1], gameMode, 0x2C);
-    cmdbuf[12] = 0x400802;
-    cmdbuf[13] = (uintptr_t)desc;
+	memcpy(&cmdbuf[1], gameMode, 0x2C);
+	cmdbuf[12] = 0x400802;
+	cmdbuf[13] = (uintptr_t)desc;
   
-    if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
 		return ret;
 
 	return (Result)cmdbuf[1];
