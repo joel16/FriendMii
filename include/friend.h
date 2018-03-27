@@ -18,6 +18,8 @@
 #define TEXTURE_COLOUR_WHITE      19
 #define TEXTURE_COLOUR_BLACK      20
 
+Handle s_terminate;
+
 typedef enum 
 {
 	PLATFORM_WII,
@@ -74,5 +76,7 @@ void Friend_GetGameIcon(u64 titleId);
 char * Friend_GetPlatform(u64 titleId);
 bool Friend_IsValidFriendCode(u64 friendCode);
 size_t Friend_GetFriendColour(u16 colour);
+void HandleFriendNotification(FriendNotifEvent *event);
+void FriendNotificationHandlerThread(void *n);
 
 #endif

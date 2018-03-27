@@ -50,12 +50,57 @@ typedef struct
    u32 padding;                       
 } FriendPresence;
 
+typedef struct
+{
+   u64 titleId;
+   u32 unk;
+   u32 unk2;
+} FriendGameKey;
+
+typedef struct
+{
+   FriendGameKey key;
+   wchar_t desc[128];
+} FriendGameDescription;
+
+typedef union MiiEyebrow_t 
+{
+   u32 raw;
+   struct 
+   {
+        u32 rotation : 4;
+        u32 _unk_bit_4 : 1;
+        u32 xspacing : 4;
+        u32 ypos : 5;
+        u32 _unk_bit_14_15 : 2;
+        u32 style : 5;
+        u32 color : 3;
+        u32 xscale : 4;
+        u32 yscale : 4;
+   };
+} MiiEyebrow;
+
 #pragma pack(1)
 typedef struct 
 {    
     u32 mii_id;
     u64 system_id;
-    u32 cdate;
+    union {
+        // This unsigned 32bit integer is stored in big-endian and holds the
+        // date of creation in its lower 28 bit:
+        //
+        // seconds since 01/01/2010 00:00:00
+        //   = (date_of_creation[bit 0 .. bit 27]) * 2
+        u32 date_of_creation;
+
+        // Non special Miis have bit 31 of aforementioned big-endian word set,
+        // which corresponds to bit 8 in little endian, which the 3DS uses.
+        struct {
+            u32 : 7;
+            u32 specialness : 1;
+            u32 : 24;
+        };
+    };
 
     u8 mac[0x6];
     u16 padding;
@@ -65,13 +110,12 @@ typedef struct
     u16 bday_day : 5;
     u16 colour : 4; // 0 = Red, 1 = Orange, 2 = Yellow, 3 = Lime green, 4 = Green, 5 = Blue, 6 = Neon blue, 7 = Pink, 8 = Purple, 9 = Brown, 10 = White, and 11 = Black.
     u16 favorite : 1; // 0 = No, and 1 = Yes.
-    u16 _unk_0x19 : 1;
+    u16 unk0 : 1;
     
     u16 mii_name[0xB];
     
     u8 width;
     u8 height;
-
     u32 misc2;
     u32 unknown1;
     u32 misc3;
@@ -91,6 +135,27 @@ typedef struct
     u8 platform;    // Platform code.
     u32 padding;
 } Profile;
+
+typedef enum 
+{
+  self_online = 1,
+  self_offline,
+  friend_online,
+  friend_presence,
+  friend_mii,
+  friend_profile,
+  friend_offline,
+  friend_became_friend,
+  friend_invitaton
+} FriendNotifType;
+
+typedef struct
+{
+  u8 type;
+  u8 padding3[3];
+  u32 padding;
+  FriendKey key;
+} FriendNotifEvent;
 
 Result frdInit(void);
 void frdExit(void);
@@ -112,13 +177,19 @@ Result FRD_GetFriendPresence(FriendPresence* FriendPresenceList, const FriendKey
 Result FRD_GetFriendMii(MiiStoreData * miiDataList, const FriendKey * friendKeyList, size_t size);
 Result FRD_GetFriendProfile(Profile * profileList, const FriendKey * friendKeyList, size_t size);
 Result FRD_GetFriendAttributeFlags(AttributeFlag* attributeFlags, const FriendKey* friendKeyList, size_t size);
-Result FRD_GetFriendPlayingGame(u64 * titleid, const FriendKey * friendKeyList, size_t size);
+Result FRD_GetFriendPlayingGame(FriendGameDescription *desc, FriendKey * friendKeyList, size_t size);
+Result FRD_GetFriendFavoriteGame(const FriendKey * friendKeyList, FriendGameKey * key, size_t size);
 Result FRD_IsFromFriendList(FriendKey * friendKeyList, bool * isFromList);
 Result FRD_UpdateGameModeDescription(u16 * desc);
 Result FRD_UpdateGameMode(const GameMode *gameMode, u16 * desc);
 Result FRD_PrincipalIdToFriendCode(u32 principalId, u64 * friendCode);
 Result FRD_FriendCodeToPrincipalId(u64 friendCode, u32 * principalId);
 Result FRD_IsValidFriendCode(u64 friendCode, bool * isValid);
+Result FRD_GetFriendComment(wchar_t * comment, FriendKey *friendKeyList, size_t size);
 Result FRD_SetClientSdkVersion(u32 sdkVer);
+Result FRD_GetEventNotification(FriendNotifEvent *event, size_t size, u32 *count);
+Result FRD_AttachToEventNotification(Handle event);
+Result FRD_RemoveFriend(u32 principalId, u64 friendCode);
+Result FRD_AddFriendOnline(Handle event, u32 principalId);
 
 #endif

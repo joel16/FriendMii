@@ -261,7 +261,7 @@ Result FRD_GetFriendPresence(FriendPresence* friendPresenceList, const FriendKey
 	cmdbuf[64] = IPC_Desc_Buffer((size * sizeof(FriendPresence)), IPC_BUFFER_W);
 	cmdbuf[65] = (u32)friendPresenceList;
 
-	if(R_FAILED(ret = svcSendSyncRequest(frdHandle)))return ret;
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))return ret;
 
 	return (Result)cmdbuf[1];
 }
@@ -286,23 +286,23 @@ Result FRD_GetFriendMii(MiiStoreData * miiDataList, const FriendKey * friendKeyL
 
 Result FRD_GetFriendProfile(Profile * profileList, const FriendKey * friendKeyList, size_t size)
 {
-	Result ret = 0;
-	u32 * cmdbuf = getThreadCommandBuffer();
+    u32 *cmdbuf = getThreadCommandBuffer();
+    cmdbuf[0] = 0x150042;
+    cmdbuf[1] = size;
+    cmdbuf[2] = (size << 18)|2;
+    cmdbuf[3] = (u32)friendKeyList;
+    
+    u32 *staticbuf = getThreadStaticBuffers();
+    staticbuf[0] = (size << 17)|2;
+    staticbuf[1] = (u32)profileList;
+    
+    Result ret =0;
+    if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
+    
+    return (Result)cmdbuf[1];
+} 
 
-	cmdbuf[0] = IPC_MakeHeader(0x15, 1, 2); // 0x00150042
-	cmdbuf[1] = 0;
-	cmdbuf[2] = (size << 18) | 2;
-	cmdbuf[3] = (u32)friendKeyList;
-	cmdbuf[64] = IPC_Desc_Buffer(size * sizeof(Profile), IPC_BUFFER_W);
-	cmdbuf[65] = (u32)profileList;
-
-	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
-		return ret;
-
-	return (Result)cmdbuf[1];
-}
-
-Result FRD_GetFriendAttributeFlags(AttributeFlag* attributeFlags, const FriendKey* friendKeyList, size_t size)
+Result FRD_GetFriendAttributeFlags(AttributeFlag *attributeFlags, const FriendKey *friendKeyList, size_t size)
 {
 	Result ret = 0;
 	u32 * cmdbuf = getThreadCommandBuffer();
@@ -320,22 +320,40 @@ Result FRD_GetFriendAttributeFlags(AttributeFlag* attributeFlags, const FriendKe
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetFriendPlayingGame(u64 * titleid, const FriendKey * friendKeyList, size_t size)
+Result FRD_GetFriendPlayingGame(FriendGameDescription *desc, FriendKey * friendKeyList, size_t size)
 {
-	Result ret = 0;
-	u32 * cmdbuf = getThreadCommandBuffer();
+    Result ret = 0;
+    u32 * cmdbuf = getThreadCommandBuffer();
 
-	cmdbuf[0] = IPC_MakeHeader(0x18, 1, 4); // 0x00180044
-	cmdbuf[1] = 0;
-	cmdbuf[2] = (size << 18) | 2;
-	cmdbuf[3] = (u32)friendKeyList;
-	cmdbuf[4] = IPC_Desc_Buffer(size, IPC_BUFFER_W);
-	cmdbuf[5] = (u32)titleid;
+    cmdbuf[0] = IPC_MakeHeader(0x18, 1, 4); // 0x00180044
+    cmdbuf[1] = size;
+    cmdbuf[2] = (size << 18) | 2;
+    cmdbuf[3] = (u32)friendKeyList;
+    cmdbuf[4] = 0x1100 * size | 0xC;
+    cmdbuf[5] = (u32)desc;
 
-	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
-		return ret;
+    if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+        return ret;
 
-	return (Result)cmdbuf[1];
+    return (Result)cmdbuf[1];
+}
+
+Result FRD_GetFriendFavoriteGame(const FriendKey * friendKeyList, FriendGameKey * key, size_t size)
+{
+    u32 *cmdbuf = getThreadCommandBuffer();
+    cmdbuf[0] = 0x190042;
+    cmdbuf[1] = size;
+    cmdbuf[2] = (size << 18)|2;
+    cmdbuf[3] = (u32)friendKeyList;
+    
+    u32 *staticbuf = getThreadStaticBuffers();
+    staticbuf[0] = (size << 18)|2;
+    staticbuf[1] = (u32)key;
+    
+    Result ret =0;
+    if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
+    
+    return (Result)cmdbuf[1];
 }
 
 Result FRD_IsFromFriendList(FriendKey * friendKeyList, bool * isFromList)
@@ -436,6 +454,26 @@ Result FRD_IsValidFriendCode(u64 friendCode, bool * isValid)
 	return (Result)cmdbuf[1];
 }
 
+Result FRD_GetFriendComment(wchar_t * comment, FriendKey *friendKeyList, size_t size)
+{
+    Result ret = 0;
+    u32 *cmdbuf = getThreadCommandBuffer();
+    cmdbuf[0] = 0x310082;
+    cmdbuf[1] = 17 * size;
+    cmdbuf[2] = size;
+    cmdbuf[3] = ((size) << 18)|2;
+    cmdbuf[4] = (u32)friendKeyList;
+    
+    u32 *staticbuf = getThreadStaticBuffers();
+    staticbuf[0] = ((17 * size) << 15)|2;
+    staticbuf[1] = (u32)comment;
+    
+    if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) 
+    	return ret;
+    
+    return (Result)cmdbuf[1];
+}
+
 Result FRD_SetClientSdkVersion(u32 sdkVer)
 {
 	Result ret = 0;
@@ -450,3 +488,66 @@ Result FRD_SetClientSdkVersion(u32 sdkVer)
 
 	return (Result)cmdbuf[1];
 }
+
+Result FRD_GetEventNotification(FriendNotifEvent *event, size_t size, u32 *count)
+{
+	Result ret = 0;
+	
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = 0x220040;
+	cmdbuf[1] = (u32)size;
+	
+	u32 *staticbuf = getThreadStaticBuffers();
+	staticbuf[0] = 0x60000 * size | 2;
+	staticbuf[1] = (u32)event;
+	
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+	
+	*count = cmdbuf[3];
+	
+	return (Result)cmdbuf[1];
+} 
+
+Result FRD_AttachToEventNotification(Handle event)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = 0x200002;
+	cmdbuf[1] = 0;
+	cmdbuf[2] = (u32)event;
+	
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) 
+		return ret;
+	
+	return (Result)cmdbuf[1];
+} 
+
+Result FRD_RemoveFriend(u32 principalId, u64 friendCode)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = 0x4090100;
+	cmdbuf[1] = principalId;
+	cmdbuf[2] = friendCode & 0xffffffff;
+	cmdbuf[3] = (friendCode >> 32) & 0xffffffff;
+	
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+	
+	return (Result)cmdbuf[1];	
+}
+
+Result FRD_AddFriendOnline(Handle event, u32 principalId)
+{
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = 0x4060042;
+	cmdbuf[1] = principalId;
+	cmdbuf[2] = 0;
+	cmdbuf[3] = (u32)event;
+	
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
+	
+	return (Result)cmdbuf[1];
+} 

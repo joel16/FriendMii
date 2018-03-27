@@ -317,3 +317,75 @@ size_t Friend_GetFriendColour(u16 colour)
 
 	return id;
 }
+
+void HandleFriendNotification(FriendNotifEvent *event)
+{
+	switch(event->type)
+	{
+		case friend_became_friend:
+		printf("registered %lx as a friend", event->key.principalId);
+		break;
+		
+		case friend_online:
+		printf("%lx is online", event->key.principalId);
+		break;
+		
+		case friend_offline:
+		printf("%lx is offline", event->key.principalId);
+		break;
+		
+		default:
+		printf("notification %d recieved for %lx", event->type, event->key.principalId);
+		break;
+	}
+}
+
+void FriendNotificationHandlerThread(void *n)
+{
+	printf("HandlerThreadCreated()\n");
+	Handle friendsEvent;
+	svcCreateEvent(&friendsEvent, RESET_ONESHOT);
+	
+	Result res = FRD_AttachToEventNotification(friendsEvent);
+	if(res != 0) printf("Error in AttachingEventHandle %08lX", res);
+	s32 out;
+	Handle frd_handles[] = {friendsEvent, s_terminate};
+	bool run = true;
+	
+	FriendNotifEvent events[10];
+	size_t event_list_size = 10;
+	
+	while(run)
+	{
+		svcWaitSynchronizationN(&out, frd_handles, 2, false, U64_MAX);
+		printf("out %d\n", out);
+		
+		switch(out)
+		{
+			case 0:
+			{
+				size_t size = 0;
+				
+				do
+				{
+					res = FRD_GetEventNotification(events, 10, (u32 *)&size);
+					printf("GetEventNotification %08lX\n", res);
+				
+					for(int i = 0; i < size; ++i)
+						HandleFriendNotification(events + i);
+				
+				} while(size!=0);
+
+				break;
+			}
+			
+			case 1:
+			run = false;
+			break;
+			
+		}
+	}
+
+	svcClearEvent(s_terminate);
+	printf("Deinitialization finished\n");
+}
