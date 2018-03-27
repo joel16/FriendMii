@@ -14,6 +14,7 @@ An open source experimental friends app for the Nintendo 3DS.
 
 # Credits:
 - Ryuzaki-MrL
+- Kartik
 - Reisyukaku
 - 3DBrew
 - Preetisketch
