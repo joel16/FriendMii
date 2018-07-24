@@ -10,45 +10,8 @@
 #define FRIEND_LIST_SIZE 0x64 // 100
 #define FRIEND_MII_STORE_DATA_SIZE 0x60 // 96
 
-enum AttributeFlag
-{
-   ATTRIBUTE_FLAG_ESTABLISHED = 1 << 0, //!< a friend relationship has been established at least once.
-   ATTRIBUTE_FLAG_REMOTE_ACCESSIBLE = 1 << 1 //!< local host can access the resources of friends when the friends are online.
-};
-typedef enum AttributeFlag AttributeFlag;
-
-typedef struct
-{
-   u32 principalId;
-   u32 padding;
-   u64 localFriendCode;
-} FriendKey;
-
-typedef struct
-{
-   u32 joinAvailabilityFlag;
-   u32 matchmakeSystemType;
-   u32 joinGameId;
-   u32 joinGameMode;
-   u32 ownerPrincipalId;
-   u32 joinGroupId;
-   u8 applicationArg[0x14];
-} GameMode;
-
-typedef struct
-{
-   GameMode gameMode;
-   u16 modeDescription[0x80];
-} MyPresence;
-
-typedef struct
-{
-   GameMode gameMode;
-   bool isOnline;
-   bool isInvitingMe;
-   bool isValid;
-   u32 padding;                       
-} FriendPresence;
+Handle frdHandle;
+int frdRefCount;
 
 #pragma pack(1)
 typedef struct 
@@ -82,43 +45,44 @@ typedef struct
 } MiiStoreData;
 #pragma pop
 
+enum AttributeFlag
+{
+   ATTRIBUTE_FLAG_ESTABLISHED = 1 << 0, //!< a friend relationship has been established at least once.
+   ATTRIBUTE_FLAG_REMOTE_ACCESSIBLE = 1 << 1 //!< local host can access the resources of friends when the friends are online.
+};
+typedef enum AttributeFlag AttributeFlag;
+
 typedef struct
 {
-    u8 region;      // The region code for the hardware region.
-    u8 country;     // Country code.
-    u8 area;        // Area code.
-    u8 language;    // Language code.
-    u8 platform;    // Platform code.
-    u32 padding;
-} Profile;
+   u32 joinAvailabilityFlag;
+   u32 matchmakeSystemType;
+   u32 joinGameId;
+   u32 joinGameMode;
+   u32 ownerPrincipalId;
+   u32 joinGroupId;
+   u8 applicationArg[0x14];
+} GameMode;
 
-Result frdInit(void);
-void frdExit(void);
-Result FRDU_HasLoggedIn(bool * state);
-Result FRDU_IsOnline(bool * state);
-Result FRD_Login(Handle event);
-Result FRD_Logout(void);
-Result FRD_GetMyFriendKey(FriendKey * key);
-Result FRD_GetMyPreference(bool * isPublicMode, bool * isShowGameName, bool * isShowPlayedGame);
-Result FRD_GetMyProfile(Profile * profile);
-Result FRD_GetMyPresence(MyPresence * myPresence);
-Result FRD_GetMyScreenName(u16 * name);
-Result FRD_GetMyMii(MiiStoreData * mii);
-Result FRD_GetMyPlayingGame(u64 * titleId);
-Result FRD_GetMyFavoriteGame(u64 * titleId);
-Result FRD_GetMyComment(u16 * comment);
-Result FRD_GetFriendKeyList(FriendKey * friendKeyList, size_t * num, size_t offset, size_t size);
-Result FRD_GetFriendPresence(FriendPresence* FriendPresenceList, const FriendKey* friendKeyList, size_t size);
-Result FRD_GetFriendMii(MiiStoreData * miiDataList, const FriendKey * friendKeyList, size_t size);
-Result FRD_GetFriendProfile(Profile * profileList, const FriendKey * friendKeyList, size_t size);
-Result FRD_GetFriendAttributeFlags(AttributeFlag* attributeFlags, const FriendKey* friendKeyList, size_t size);
-Result FRD_GetFriendPlayingGame(u64 * titleid, const FriendKey * friendKeyList, size_t size);
-Result FRD_IsFromFriendList(FriendKey * friendKeyList, bool * isFromList);
-Result FRD_UpdateGameModeDescription(u16 * desc);
-Result FRD_UpdateGameMode(const GameMode *gameMode, u16 * desc);
-Result FRD_PrincipalIdToFriendCode(u32 principalId, u64 * friendCode);
-Result FRD_FriendCodeToPrincipalId(u64 friendCode, u32 * principalId);
-Result FRD_IsValidFriendCode(u64 friendCode, bool * isValid);
-Result FRD_SetClientSdkVersion(u32 sdkVer);
+typedef struct
+{
+   GameMode gameMode;
+   u16 modeDescription[0x80];
+} MyPresence;
+
+typedef struct
+{
+   GameMode gameMode;
+   bool isOnline;
+   bool isInvitingMe;
+   bool isValid;
+   u32 padding;                       
+} FriendPresence;
+
+Result FRD_GetFriendMii2(MiiStoreData *miiDataList, const FriendKey *friendKeyList, size_t size);
+Result FRD_GetFriendComment(wchar_t *comment, FriendKey *friendKeyList, size_t size);
+Result FRD_GetMyPresence(MyPresence *myPresence);
+Result FRD_GetFriendPresence(FriendPresence *FriendPresenceList, const FriendKey *friendKeyList, size_t size);
+Result FRD_GetFriendAttributeFlags(AttributeFlag *attributeFlags, const FriendKey *friendKeyList, size_t size);
+Result FRD_UpdateGameMode(const GameMode *gameMode, u16 *desc);
 
 #endif
