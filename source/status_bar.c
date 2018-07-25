@@ -3,7 +3,6 @@
 
 #include "C2D_helper.h"
 #include "common.h"
-#include "config.h"
 #include "status_bar.h"
 #include "textures.h"
 
@@ -110,10 +109,12 @@ void StatusBar_DisplayData(void)
 
 	Battery_GetStatus();
 
-	Draw_Text(((400 - (battery_charge.subtex->width)) - 5) - width, (20 - height) / 2, 0.48f, config_dark_theme? WHITE : BLACK, Clock_GetCurrentTime(true));
+	Draw_Text(((400 - (battery_charge.subtex->width)) - 5) - width, (20 - height) / 2, 0.48f, BLACK, Clock_GetCurrentTime(true));
 
 	width = (Draw_GetTextWidth(0.48f, "0") + Draw_GetTextWidth(0.48f, "/00") + Draw_GetTextWidth(0.48f, " ()") + 
 				Draw_GetTextWidth(0.48f, Clock_GetCurrentDay(1)) + Draw_GetTextWidth(0.48f, Clock_GetCurrentDay(1)));
 	
-	Draw_Textf(316 - width, (20 - height) / 2, 0.48f, config_dark_theme? WHITE : BLACK, "%d/%d (%s)", Clock_GetCurrentDayNum(), Clock_GetCurrentMonth(), Clock_GetCurrentDay(1));
+	Draw_Textf(316 - width, (20 - height) / 2, 0.48f, BLACK, "%d/%d (%s)", Clock_GetCurrentDayNum(), Clock_GetCurrentMonth(), Clock_GetCurrentDay(1));
+
+	Draw_Textf(5, (20 - Draw_GetTextHeight(0.5f, "FriendMii vX.XX")) / 2, 0.5f, BLACK, "FriendMii v%d.%02d", VERSION_MAJOR, VERSION_MINOR);
 }

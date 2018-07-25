@@ -2,36 +2,43 @@
 
 #include "C2D_helper.h"
 #include "common.h"
-#include "config.h"
 #include "friend.h"
+#include "frd.h"
 #include "menu_friendcard.h"
 #include "menu_friendlist.h"
 #include "status_bar.h"
 #include "utils.h"
 
+#include "title_parser.h"
+
 size_t friendCount = 0;
 
 FriendKey friendKey[FRIEND_LIST_SIZE];
+MiiStoreData friendMiiList[FRIEND_LIST_SIZE];
+GameDescription friendGameDesc[FRIEND_LIST_SIZE];
 
 char friendNames[FRIEND_LIST_SIZE * 0xB];
 char friendAuthor[FRIEND_LIST_SIZE * 0xB];
-
-MiiStoreData friendMiiList[FRIEND_LIST_SIZE];
-
 wchar_t wfriendComment[FRIENDS_COMMENT_SIZE];
 char friendComment[FRIEND_LIST_SIZE][FRIENDS_COMMENT_SIZE];
+char friendGameDescList[FRIEND_LIST_SIZE][128];
 
 bool isValid[FRIEND_LIST_SIZE];
 bool isFromList[FRIEND_LIST_SIZE];
 
 u64 friendCodes[FRIEND_LIST_SIZE];
+u64 friendFavTIDs[FRIEND_LIST_SIZE];
 
 void Menu_Main(void)
 {
 	Friend_GameIcon =  Friend_LoadGameIcon(Friend_GetFavouriteGame());
 
-	FRD_GetFriendKeyList(friendKey, &friendCount, 0, FRIEND_LIST_SIZE);
+	FRD_GetFriendKeyList(friendKey, &friendCount, 0, FRIENDS_COMMENT_SIZE);
 	FRD_GetFriendMii2(friendMiiList, friendKey, friendCount);
+	FRD_GetFriendFavouriteGame(friendGameDesc, friendKey, friendCount);
+
+	//Title_ParserParseXML("/3dsreleases.xml");
+	//const char *title = Title_ParserGetValue("name");
 
 	for (size_t i = 0x0; i < friendCount; i++) 
 	{
@@ -46,19 +53,25 @@ void Menu_Main(void)
 		Utils_U16_To_U8(&friendAuthor[i * 0xB], friendMiiList[i].mii_name, 0xB);
 		friendAuthor[i * 0xB + 0xA] = 0;
 
+		FRD_GetFriendFavouriteGame(&friendGameDesc[i], &friendKey[i], friendCount);
 		FRD_GetFriendComment(wfriendComment, &friendKey[i], i);
-		size_t size = utf16_to_utf8((uint8_t*)friendComment[i], (u16 *)wfriendComment, FRIENDS_COMMENT_SIZE);
-		friendComment[i][size] = '\0';
+		Utils_U16_To_U8(friendComment[i], (u16 *)wfriendComment, FRIENDS_COMMENT_SIZE);
+
+		friendFavTIDs[i] = friendGameDesc[i].data.tid;
+		Utils_U16_To_U8((u8 *)friendGameDescList[i], friendGameDesc[i].desc, 128);
 	}
 
 	while(aptMainLoop())
 	{
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-		C2D_TargetClear(RENDER_TOP, config_dark_theme? DARK_BG : DEFAULT_BG);
-		C2D_TargetClear(RENDER_BOTTOM, config_dark_theme? DARK_BG : DEFAULT_BG);
+		C2D_TargetClear(RENDER_TOP, DEFAULT_BG);
+		C2D_TargetClear(RENDER_BOTTOM, DEFAULT_BG);
 		C2D_SceneBegin(RENDER_TOP);
 
-		Draw_Rect(0, 0, 400, 20, config_dark_theme? STATUS_BAR_DARK : WHITE); // Status bar
+		Draw_Rect(0, 0, 400, 20, WHITE); // Status bar
+
+		Draw_Rect(0, 20, 400, 220, DEFAULT_BG);
+		Draw_Rect(46, 33, 306, 184, WHITE);
 
 		StatusBar_DisplayData();
 
@@ -74,6 +87,10 @@ void Menu_Main(void)
 
 		C2D_SceneBegin(RENDER_BOTTOM);
 
+		Draw_Rect(34, 49, 252, 40, WHITE);
+		Draw_Rect(96, 104, 128, 80, WHITE);
+		Draw_Rect(98, 158, 124, 26, WHITE);
+
 		switch(MENU_STATE)
 		{
 			case STATE_FRIENDCARD:
@@ -83,6 +100,10 @@ void Menu_Main(void)
 				Menu_DisplayFriendListBottom();
 				break;
 		}
+
+		Draw_Rect(30, 210, 260, 30, C2D_Color32(70, 70, 78, 255));
+
+		Draw_Text(30 + ((260 - Draw_GetTextWidth(0.6f, "\uE070 Close")) / 2) , 210 + ((30 - Draw_GetTextHeight(0.6f, "\uE070 Close")) / 2), 0.6f, WHITE, "\uE070 Close");
 
 		Draw_EndFrame();
 

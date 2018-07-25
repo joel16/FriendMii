@@ -3,15 +3,15 @@
 
 #include <citro2d.h>
 
-#define STATUS_BAR_LIGHT      C2D_Color32(37, 79, 174, 255)
-#define STATUS_BAR_DARK       C2D_Color32(38, 50, 56, 255)
 #define DEFAULT_BG            C2D_Color32(234, 234, 234, 255)
-#define DARK_BG               C2D_Color32(48, 48, 48, 255)
-#define BORDER_COLOUR         C2D_Color32(0, 150, 136, 255)
+#define FRIEND_FILL           C2D_Color32(255, 196, 142, 255)
 #define SELECTOR_COLOUR_LIGHT C2D_Color32(241, 241, 241, 255)
-#define SELECTOR_COLOUR_DARK  C2D_Color32(76, 76, 76, 255)
 #define BLACK                 C2D_Color32(0, 0, 0, 255)
 #define WHITE                 C2D_Color32(255, 255, 255, 255)
+#define TEXT_COLOUR           C2D_Color32(82, 82, 82, 255)
+#define TEXT_COLOUR2          C2D_Color32(82, 82, 82, 255)
+#define TEXT_COLOUR_LIGHT     C2D_Color32(82, 60, 60, 255)
+#define TEXT_COLOUR_LIGHT2    C2D_Color32(241, 164, 34, 255)
 
 C3D_RenderTarget *RENDER_TOP, *RENDER_BOTTOM;
 C2D_TextBuf staticBuf, dynamicBuf, sizeBuf;

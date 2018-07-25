@@ -1,18 +1,22 @@
 #include "C2D_helper.h"
 #include "common.h"
-#include "config.h"
 #include "friend.h"
 #include "menu_friendlist.h"
 #include "status_bar.h"
 #include "utils.h"
 
 #define DISTANCE_Y    35
-#define LIST_PER_PAGE 6
+#define LIST_PER_PAGE 1
 
 static int selection = 0;
 
 void Menu_DisplayFriendListTop(void)
 {
+	Draw_Rect(50, 37, 298, 80, C2D_Color32(224, 224, 224, 255));
+	Draw_Rect(50, 117, 298, 57, C2D_Color32(176, 176, 176, 255));
+
+	Draw_Text(53, 42, 0.6f, TEXT_COLOUR, "Favourite Title:");
+
 	int printed = 0; // Print counter
 
 	for (size_t i = 0x0; i < friendCount; i++)
@@ -22,50 +26,53 @@ void Menu_DisplayFriendListTop(void)
 
 		if (selection < LIST_PER_PAGE || i > (selection - LIST_PER_PAGE))
 		{
-			if (i == selection)
-				Draw_Rect(4, 20 + (DISTANCE_Y * printed), 392, 35, SELECTOR_COLOUR_LIGHT);
-			
-			//Draw_Texture(Friend_GetFriendColour(friendMiiList[i].colour), 10, 25 + (DISTANCE_Y * printed));
-			Draw_Textf(50, 30 + (DISTANCE_Y * printed), 0.5f, i == selection? BORDER_COLOUR : BLACK, "%s : %04llu-%04llu-%04llu", 
-				strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB],
-				friendCodes[i]/100000000LL, (friendCodes[i]/10000)%10000, friendCodes[i]%10000);
+			Draw_Textf(112, 70, 0.5f, TEXT_COLOUR, "(%016llX)", friendFavTIDs[selection]);
+			//Draw_Text(112, 90, 0.5f, TEXT_COLOUR, friendGameDescList[selection]);
+
+			Draw_Text(345 - Draw_GetTextWidth(0.7f, strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB]), 176, 0.7f, 
+				C2D_Color32(126, 52, 34, 255), strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB]);
+			Draw_Textf(345 - (Draw_GetTextWidth(0.5f, "Friend Code: ") + Draw_GetTextWidth(0.5f, "0000 - 0000 - 0000")),
+				200, 0.5f, C2D_Color32(140, 138, 138, 255), "Friend Code: %04llu - %04llu - %04llu", friendCodes[i]/100000000LL, 
+				(friendCodes[i]/10000)%10000, friendCodes[i]%10000);
 			
 			printed++; // Increase printed counter
 		}
 	}
 }
 
+//static char friendListCount[10];
+
 void Menu_DisplayFriendListBottom(void)
 {
-	Draw_Rect(32, 47, 256, 44, BORDER_COLOUR);
-	Draw_Rect(34, 49, 252, 40, config_dark_theme? STATUS_BAR_DARK : WHITE);
-	Draw_Rect(96, 104, 128, 82, BORDER_COLOUR);
-	Draw_Rect(98, 106, 124, 76, config_dark_theme? STATUS_BAR_DARK : WHITE);
-	Draw_Rect(98, 158, 124, 26, config_dark_theme? DARK_BG : DEFAULT_BG);
+	Draw_Rect(98, 106, 124, 76, C2D_Color32(224, 224, 224, 255));
+	Draw_Rect(98, 106, 124, 38, C2D_Color32(176, 176, 176, 255));
 
-	float width =  friendMiiList[selection].gender? Draw_GetTextWidth(0.5f, "♀ ") : Draw_GetTextWidth(0.5f, "♂ ");
-	Draw_Text(34 + ((252 - Draw_GetTextWidth(0.6f, friendComment[selection])) / 2), 60, 0.6f, BORDER_COLOUR, friendComment[selection]);
+	float comment_width = isFromList[selection]? (strlen(friendComment[selection]) == 0? Draw_GetTextWidth(0.55f, "No status message.") : 
+		Draw_GetTextWidth(0.55f, friendComment[selection])) : Draw_GetTextWidth(0.55f, "Provisionally registered friend.");
+	
+	Draw_Text(34 + ((252 - comment_width) / 2), 60, 0.55f, TEXT_COLOUR2, isFromList[selection]? 
+		(strlen(friendComment[selection]) == 0? "No status message." : friendComment[selection]) : "Provisionally registered friend.");
 		
-	//Draw_Textf(100, 106, 0.5f, BORDER_COLOUR, "%s", Friend_IsOnline()? "Online" : "Offline");
-	Draw_Textf(220 - (Draw_GetTextWidth(0.5f, &friendNames[selection * 0xB]) + width), 164, 0.5f, BORDER_COLOUR, "%s %s", &friendNames[selection * 0xB], friendMiiList[selection].gender? "♀" : "♂");
+	//Draw_Textf(100, 106, 0.5f, FRIEND_FILL, "%s", Friend_IsOnline()? "Online" : "Offline");
+	Draw_Textf(220 - (Draw_GetTextWidth(0.5f, &friendNames[selection * 0xB])), 164, 0.5f, C2D_Color32(126, 52, 34, 255), "%s %s", &friendNames[selection * 0xB]);
 
-	if (!isFromList[selection])
-		Draw_Text(((320 - Draw_GetTextWidth(0.55f, "This person does not have you added")) / 2), 190, 0.55f, config_dark_theme? WHITE : BLACK, "This person does not have you added");
+	//snprintf(friendListCount, 10, "%d / %d", selection, friendCount);
+	Draw_Textf((320 - (Draw_GetTextWidth(0.5f, "X / X"))) / 2, 190, 0.5f, C2D_Color32(126, 52, 34, 255), "%d / %d", selection + 1, friendCount);
 }
 
 void Menu_ControlFriendList(u32 kDown, u32 kHeld)
 {
-	if (kDown & KEY_DDOWN)
+	if (kDown & KEY_DRIGHT)
 		selection++;
-	else if (kDown & KEY_DUP)
+	else if (kDown & KEY_DLEFT)
 		selection--;
 
-	if (kHeld & KEY_CPAD_DOWN)
+	if (kHeld & KEY_CPAD_RIGHT)
 	{
 		wait(5);
 		selection++;
 	}
-	else if (kHeld & KEY_CPAD_UP)
+	else if (kHeld & KEY_CPAD_LEFT)
 	{
 		wait(5);
 		selection--;
