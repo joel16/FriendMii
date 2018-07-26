@@ -13,6 +13,8 @@ void Textures_Load(void)
 	battery_3 = C2D_SpriteSheetGetImage(spritesheet, sprites_battery_3_idx);
 	battery_4 = C2D_SpriteSheetGetImage(spritesheet, sprites_battery_4_idx);
 	battery_charge = C2D_SpriteSheetGetImage(spritesheet, sprites_battery_charge_idx);
+	icon_search = C2D_SpriteSheetGetImage(spritesheet, sprites_ic_material_light_search_idx);
+	icon_add = C2D_SpriteSheetGetImage(spritesheet, sprites_ic_material_light_add_idx);
 }
 
 void Textures_Free(void)

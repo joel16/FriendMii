@@ -7,6 +7,7 @@
 #include "menu_friendcard.h"
 #include "menu_friendlist.h"
 #include "status_bar.h"
+#include "textures.h"
 #include "utils.h"
 
 #include "title_parser.h"
@@ -101,9 +102,12 @@ void Menu_Main(void)
 				break;
 		}
 
+		Draw_Image(icon_search, 300, 0);
+		Draw_Image(icon_add, 270, -5);
+
 		Draw_Rect(30, 210, 260, 30, C2D_Color32(70, 70, 78, 255));
 
-		Draw_Text(30 + ((260 - Draw_GetTextWidth(0.6f, "\uE070 Close")) / 2) , 210 + ((30 - Draw_GetTextHeight(0.6f, "\uE070 Close")) / 2), 0.6f, WHITE, "\uE070 Close");
+		Draw_Text(30 + ((260 - Draw_GetTextWidth(0.6f, "\uE071 Close")) / 2) , 210 + ((30 - Draw_GetTextHeight(0.6f, "\uE071 Close")) / 2), 0.6f, WHITE, "\uE070 Close");
 
 		Draw_EndFrame();
 

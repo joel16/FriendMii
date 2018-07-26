@@ -1,14 +1,35 @@
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "C2D_helper.h"
 #include "common.h"
 #include "friend.h"
 #include "menu_friendlist.h"
 #include "status_bar.h"
+#include "touch.h"
 #include "utils.h"
 
 #define DISTANCE_Y    35
 #define LIST_PER_PAGE 1
 
 static int selection = 0;
+static bool remove_selected = false;
+
+static void log_func(const char *s, ...)
+{
+		char buf[256];
+		va_list argptr;
+		va_start(argptr, s);
+		vsnprintf(buf, sizeof(buf), s, argptr);
+		va_end(argptr);
+
+		FILE *fp;
+		fp = fopen("/log.txt", "a");
+		fprintf(fp, buf);
+		fclose(fp);
+}
+
+#define DEBUG(...) log_func(__VA_ARGS__)
 
 void Menu_DisplayFriendListTop(void)
 {
@@ -27,7 +48,7 @@ void Menu_DisplayFriendListTop(void)
 		if (selection < LIST_PER_PAGE || i > (selection - LIST_PER_PAGE))
 		{
 			Draw_Textf(112, 70, 0.5f, TEXT_COLOUR, "(%016llX)", friendFavTIDs[selection]);
-			//Draw_Text(112, 90, 0.5f, TEXT_COLOUR, friendGameDescList[selection]);
+			Draw_Textf(112, 90, 0.5f, TEXT_COLOUR, "%lu, %llu", friendKey[selection].principalId, friendCodes[selection]);
 
 			Draw_Text(345 - Draw_GetTextWidth(0.7f, strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB]), 176, 0.7f, 
 				C2D_Color32(126, 52, 34, 255), strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB]);
@@ -44,6 +65,11 @@ void Menu_DisplayFriendListTop(void)
 
 void Menu_DisplayFriendListBottom(void)
 {
+	Draw_Rect(106, 20, (Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 10), 20, remove_selected? C2D_Color32(224, 224, 224, 255) : C2D_Color32(176, 176, 176, 255));
+	Draw_Rect(110 - 3, 21, (Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 8), 18, WHITE);
+	Draw_Rect(110 - 2, 22, (Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 6), 16, remove_selected? C2D_Color32(224, 224, 224, 255) : C2D_Color32(176, 176, 176, 255));
+	Draw_Text(110, 23, 0.45f, C2D_Color32(126, 52, 34, 255), "\uE070 Remove friend");
+
 	Draw_Rect(98, 106, 124, 76, C2D_Color32(224, 224, 224, 255));
 	Draw_Rect(98, 106, 124, 38, C2D_Color32(176, 176, 176, 255));
 
@@ -60,8 +86,26 @@ void Menu_DisplayFriendListBottom(void)
 	Draw_Textf((320 - (Draw_GetTextWidth(0.5f, "X / X"))) / 2, 190, 0.5f, C2D_Color32(126, 52, 34, 255), "%d / %d", selection + 1, friendCount);
 }
 
+static void FriendList_RmFriend(void)
+{
+	Result ret = FRD_RemoveFriend(friendKey[selection].principalId, friendCodes[selection]);
+	DEBUG("FRD_RemoveFriend: 0x%lx\n", ret);
+	DEBUG("FRD_RemoveFriend: %lu\n", friendKey[selection].principalId);
+	DEBUG("FRD_RemoveFriend: %llu\n", friendCodes[selection]);
+}
+
 void Menu_ControlFriendList(u32 kDown, u32 kHeld)
 {
+	if (TouchInRect(106, 20, 106 + ((Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 10)), 40))
+	{
+		remove_selected = true;
+		
+		if (kDown & KEY_TOUCH)
+			FriendList_RmFriend();
+	}
+	else
+		remove_selected = false;
+
 	if (kDown & KEY_DRIGHT)
 		selection++;
 	else if (kDown & KEY_DLEFT)
@@ -80,4 +124,7 @@ void Menu_ControlFriendList(u32 kDown, u32 kHeld)
 
 	Utils_SetMax(&selection, 0, friendCount - 1);
 	Utils_SetMin(&selection, friendCount - 1, 0);
+
+	if (kDown & KEY_X)
+		FriendList_RmFriend();
 }
