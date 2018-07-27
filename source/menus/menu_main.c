@@ -8,6 +8,7 @@
 #include "menu_friendlist.h"
 #include "status_bar.h"
 #include "textures.h"
+#include "touch.h"
 #include "utils.h"
 
 #include "title_parser.h"
@@ -62,6 +63,8 @@ void Menu_Main(void)
 		Utils_U16_To_U8((u8 *)friendGameDescList[i], friendGameDesc[i].desc, 128);
 	}
 
+	bool close_touch = false;
+
 	while(aptMainLoop())
 	{
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
@@ -105,7 +108,7 @@ void Menu_Main(void)
 		Draw_Image(icon_search, 300, 0);
 		Draw_Image(icon_add, 270, -5);
 
-		Draw_Rect(30, 210, 260, 30, C2D_Color32(70, 70, 78, 255));
+		Draw_Rect(30, 210, 260, 30, close_touch == false? C2D_Color32(70, 70, 78, 255) : C2D_Color32(100, 100, 100, 255));
 
 		Draw_Text(30 + ((260 - Draw_GetTextWidth(0.6f, "\uE071 Close")) / 2) , 210 + ((30 - Draw_GetTextHeight(0.6f, "\uE071 Close")) / 2), 0.6f, WHITE, "\uE070 Close");
 
@@ -114,10 +117,13 @@ void Menu_Main(void)
 		hidScanInput();
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
-		Menu_ControlFriendList(kDown, kHeld);
 
-		if (kDown & KEY_START)
-			longjmp(exitJmp, 1);
+		switch(MENU_STATE)
+		{
+			case STATE_FRIENDLIST:
+				Menu_ControlFriendList(kDown, kHeld);
+				break;
+		}
 
 		if (kDown & KEY_R)
 			MENU_STATE++;
@@ -126,5 +132,18 @@ void Menu_Main(void)
 
 		Utils_SetMax(&MENU_STATE, 0, 1);
 		Utils_SetMin(&MENU_STATE, 1, 0);
+
+		if (TouchInRect(30, 210, 290, 240))
+		{
+			close_touch = true;
+			
+			if (kDown & KEY_TOUCH)
+				longjmp(exitJmp, 1);
+		}
+		else
+			close_touch = false;
+
+		if (kDown & KEY_START)
+			longjmp(exitJmp, 1);
 	}
 }

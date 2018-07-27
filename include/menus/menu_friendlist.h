@@ -23,6 +23,8 @@ extern bool isFromList[FRIEND_LIST_SIZE];
 extern u64 friendCodes[FRIEND_LIST_SIZE];
 extern u64 friendFavTIDs[FRIEND_LIST_SIZE];
 
+extern int selection;
+
 void Menu_DisplayFriendListTop(void);
 void Menu_DisplayFriendListBottom(void);
 void Menu_ControlFriendList(u32 kDown, u32 kHeld);

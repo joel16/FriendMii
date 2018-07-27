@@ -7,7 +7,6 @@
 
 #define STATE_FRIENDCARD 0
 #define STATE_FRIENDLIST 1
-#define STATE_MII        2
 
 int MENU_STATE;
 
