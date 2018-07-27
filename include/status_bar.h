@@ -1,6 +1,6 @@
-#ifndef STATUS_BAR_H
-#define STATUS_BAR_H
+#ifndef _3D_SHELL_STATUS_BAR_H
+#define _3D_SHELL_STATUS_BAR_H
 
-void StatusBar_DisplayBar(void);
+void StatusBar_DisplayData(void);
 
 #endif

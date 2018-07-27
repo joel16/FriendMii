@@ -3,13 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "common.h"
 #include "fs.h"
 #include "screenshot.h"
-#include "utils.h"
 
 static int num = 0;
 
-static Result generateScreenshot(const char * path)
+static Result generateScreenshot(const char *path)
 {
 	int x = 0, y = 0;
 	Handle handle;
@@ -19,15 +19,15 @@ static Result generateScreenshot(const char * path)
 	Result ret = 0;
 
 	// Get top/bottom framebuffers
-	u8 * gfxBottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_BOTTOM, NULL, NULL);
-	u8 * gfxTopLeft = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
+	u8 *gfxBottom = gfxGetFramebuffer(GFX_BOTTOM, GFX_BOTTOM, NULL, NULL);
+	u8 *gfxTopLeft = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
 	// Open file for writing screenshot
-	if (R_FAILED(ret = FSUSER_OpenFile(&handle, archive, fsMakePath(PATH_ASCII, path), (FS_OPEN_CREATE | FS_OPEN_WRITE), 0)))
+	if (R_FAILED(ret = FS_Open(&handle, archive, path, (FS_OPEN_CREATE | FS_OPEN_WRITE))))
 		return ret;
 
 	// Some
-	u8 * buf = (u8*)malloc(size + 576000);
+	u8 *buf = (u8*)malloc(size + 576000);
 	memset(buf, 0, size + 576000);
 	buf[size + 576000] = 0;
 
@@ -53,8 +53,8 @@ static Result generateScreenshot(const char * path)
 	{
 		for (x = 0; x < 400; x++)
 		{
-			int si = ((239 - y) + (x * 240)) * 3;
-			int di = size + (x + ((479 - y) * 400)) * 3;
+			int si = ((239 - y) + (x *240)) *3;
+			int di = size + (x + ((479 - y) *400)) *3;
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
@@ -68,8 +68,8 @@ static Result generateScreenshot(const char * path)
 	{
 		for (x = 0; x < 320; x++)
 		{
-			int si = ((239 - y) + (x * 240)) * 3;
-			int di = size + ((x+40) + ((239 - y) * 400)) * 3;
+			int si = ((239 - y) + (x *240)) *3;
+			int di = size + ((x+40) + ((239 - y) *400)) *3;
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
@@ -78,7 +78,7 @@ static Result generateScreenshot(const char * path)
 		// Make adjustments for the smaller width
 		for (x = 0; x < 40; x++)
 		{
-			int di = size + (x + ((239 - y) * 400)) * 3;
+			int di = size + (x + ((239 - y) *400)) *3;
 			buf[di++] = 0;
 			buf[di++] = 0;
 			buf[di++] = 0;
@@ -86,7 +86,7 @@ static Result generateScreenshot(const char * path)
 
 		for (x = 360; x < 400; x++)
 		{
-			int di = size + (x + ((239 - y) * 400)) * 3;
+			int di = size + (x + ((239 - y) *400)) *3;
 			buf[di++] = 0;
 			buf[di++] = 0;
 			buf[di++] = 0;
