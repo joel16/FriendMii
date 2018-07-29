@@ -9,7 +9,8 @@ extern size_t friendCount;
 
 extern FriendKey friendKey[FRIEND_LIST_SIZE];
 extern MiiStoreData friendMiiList[FRIEND_LIST_SIZE];
-extern GameDescription friendGameDesc[FRIEND_LIST_SIZE];
+extern GameDescription friendPlayGameDesc[FRIEND_LIST_SIZE];
+extern GameDescription friendFavGameDesc[FRIEND_LIST_SIZE];
 
 extern char friendNames[FRIEND_LIST_SIZE * 0xB];
 extern char friendAuthor[FRIEND_LIST_SIZE * 0xB];
@@ -21,6 +22,7 @@ extern bool isValid[FRIEND_LIST_SIZE];
 extern bool isFromList[FRIEND_LIST_SIZE];
 
 extern u64 friendCodes[FRIEND_LIST_SIZE];
+extern u64 friendPlayTIDs[FRIEND_LIST_SIZE];
 extern u64 friendFavTIDs[FRIEND_LIST_SIZE];
 
 extern int selection;

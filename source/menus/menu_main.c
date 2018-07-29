@@ -18,7 +18,8 @@ size_t friendCount = 0;
 
 FriendKey friendKey[FRIEND_LIST_SIZE];
 MiiStoreData friendMiiList[FRIEND_LIST_SIZE];
-GameDescription friendGameDesc[FRIEND_LIST_SIZE];
+GameDescription friendPlayGameDesc[FRIEND_LIST_SIZE];
+GameDescription friendFavGameDesc[FRIEND_LIST_SIZE];
 
 char friendNames[FRIEND_LIST_SIZE * 0xB];
 char friendAuthor[FRIEND_LIST_SIZE * 0xB];
@@ -31,6 +32,7 @@ bool isFromList[FRIEND_LIST_SIZE];
 
 u64 friendCodes[FRIEND_LIST_SIZE];
 u64 friendFavTIDs[FRIEND_LIST_SIZE];
+u64 friendPlayTIDs[FRIEND_LIST_SIZE];
 
 void Menu_Main(void)
 {
@@ -38,7 +40,6 @@ void Menu_Main(void)
 
 	FRD_GetFriendKeyList(friendKey, &friendCount, 0, FRIENDS_COMMENT_SIZE);
 	FRD_GetFriendMii2(friendMiiList, friendKey, friendCount);
-	FRD_GetFriendFavouriteGame(friendGameDesc, friendKey, friendCount);
 
 	//Title_ParserParseXML("/3dsreleases.xml");
 	//const char *title = Title_ParserGetValue("name");
@@ -56,12 +57,17 @@ void Menu_Main(void)
 		Utils_U16_To_U8(&friendAuthor[i * 0xB], friendMiiList[i].mii_name, 0xB);
 		friendAuthor[i * 0xB + 0xA] = 0;
 
-		FRD_GetFriendFavouriteGame(&friendGameDesc[i], &friendKey[i], friendCount);
+		FRD_GetFriendPlayingGame(&friendPlayGameDesc[i], &friendKey[i], friendCount);
+		FRD_GetFriendFavouriteGame(&friendFavGameDesc[i], &friendKey[i], friendCount);
+
 		FRD_GetFriendComment(wfriendComment, &friendKey[i], i);
 		Utils_U16_To_U8(friendComment[i], (u16 *)wfriendComment, FRIENDS_COMMENT_SIZE);
 
-		friendFavTIDs[i] = friendGameDesc[i].data.tid;
-		Utils_U16_To_U8((u8 *)friendGameDescList[i], friendGameDesc[i].desc, 128);
+		friendPlayTIDs[i] = friendPlayGameDesc[i].data.tid;
+		//Utils_U16_To_U8((u8 *)friendGameDescList[i], friendFavGameDesc[i].desc, 128);
+
+		friendFavTIDs[i] = friendFavGameDesc[i].data.tid;
+		//Utils_U16_To_U8((u8 *)friendGameDescList[i], friendFavGameDesc[i].desc, 128);
 	}
 
 	bool close_touch = false;
@@ -144,7 +150,7 @@ void Menu_Main(void)
 				Menu_ControlFriendList(kDown, kHeld);
 				break;
 		}
-		
+
 		if (kDown & KEY_R)
 			MENU_STATE++;
 		if (kDown & KEY_L)

@@ -29,7 +29,7 @@ void Menu_DisplayFriendListTop(void)
 
 		if (selection < LIST_PER_PAGE || i > (selection - LIST_PER_PAGE))
 		{
-			Draw_Textf(112, 70, 0.5f, TEXT_COLOUR, "(%016llX)", friendFavTIDs[selection]);
+			Draw_Textf(112, 70, 0.5f, TEXT_COLOUR, "(%016llX)", (friendPlayTIDs[selection] == 0)? friendFavTIDs[selection] : friendPlayTIDs[selection]);
 
 			Draw_Text(345 - Draw_GetTextWidth(0.7f, strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB]), 176, 0.7f, 
 				C2D_Color32(126, 52, 34, 255), strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB]);
