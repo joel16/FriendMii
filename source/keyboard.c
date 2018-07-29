@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "C2D_helper.h"
-#include "log.h"
+#include "common.h"
 #include "menu_friendlist.h"
 #include "keyboard.h"
 
@@ -12,10 +12,13 @@ static SwkbdCallbackResult SearchFriendCallback(void* user, const char** ppMessa
 	{
 		if (strlen(text) != 0)
 		{
-			DEBUG("Friend %d: %s\n", i, &friendNames[i * 0xB]);
 			if (strstr(text, &friendNames[i * 0xB]))
 			{
 				selection = i;
+
+				if (MENU_STATE != STATE_FRIENDLIST)
+					MENU_STATE = STATE_FRIENDLIST;
+				
 				return SWKBD_CALLBACK_OK;
 			}
 		}
@@ -71,6 +74,12 @@ static SwkbdCallbackResult AddFriendCallback(void* user, const char** ppMessage,
 				if (R_SUCCEEDED(FRD_AddFriendOnline(0, principal_id)))
 				{
 					*ppMessage = "Friend added successfully.";
+
+					selection = friendCount;
+					
+					if (MENU_STATE != STATE_FRIENDLIST)
+						MENU_STATE = STATE_FRIENDLIST;
+					
 					return SWKBD_CALLBACK_CLOSE;
 				}
 				else

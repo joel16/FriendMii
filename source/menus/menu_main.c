@@ -144,7 +144,7 @@ void Menu_Main(void)
 				Menu_ControlFriendList(kDown, kHeld);
 				break;
 		}
-
+		
 		if (kDown & KEY_R)
 			MENU_STATE++;
 		if (kDown & KEY_L)
