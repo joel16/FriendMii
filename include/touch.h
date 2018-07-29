@@ -1,5 +1,5 @@
-#ifndef _3D_SHELL_TOUCH_H
-#define _3D_SHELL_TOUCH_H
+#ifndef FRIENDMII_TOUCH_H
+#define FRIENDMII_TOUCH_H
 
 #include <3ds.h>
 

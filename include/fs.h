@@ -1,5 +1,5 @@
-#ifndef _3D_SHELL_FS_H
-#define _3D_SHELL_FS_H
+#ifndef FRIENDMII_FS_H
+#define FRIENDMII_FS_H
 
 #include <3ds.h>
 

@@ -4,6 +4,7 @@
 #include "common.h"
 #include "friend.h"
 #include "frd.h"
+#include "keyboard.h"
 #include "menu_friendcard.h"
 #include "menu_friendlist.h"
 #include "status_bar.h"
@@ -105,6 +106,8 @@ void Menu_Main(void)
 				break;
 		}
 
+		Draw_Rect(0, 0, 320, 20, C2D_Color32(70, 70, 78, 255));
+
 		Draw_Image(icon_search, 300, 0);
 		Draw_Image(icon_add, 270, -5);
 
@@ -117,6 +120,15 @@ void Menu_Main(void)
 		hidScanInput();
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
+
+		if (TouchInRect(270, 0, 300, 30))
+		{
+			if (kDown & KEY_TOUCH)
+			{
+				Keyboard_GetFriendCode();
+				Menu_Main();
+			}
+		}
 
 		switch(MENU_STATE)
 		{

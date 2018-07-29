@@ -4,6 +4,8 @@
 #include <3ds.h>
 
 #include "friend.h"
+#include "keyboard.h"
+#include "log.h"
 #include "utils.h"
 
 typedef enum 

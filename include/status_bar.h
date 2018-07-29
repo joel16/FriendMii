@@ -1,5 +1,5 @@
-#ifndef _3D_SHELL_STATUS_BAR_H
-#define _3D_SHELL_STATUS_BAR_H
+#ifndef FRIENDMII_STATUS_BAR_H
+#define FRIENDMII_STATUS_BAR_H
 
 void StatusBar_DisplayData(void);
 

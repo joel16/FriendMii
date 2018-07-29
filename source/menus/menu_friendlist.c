@@ -3,7 +3,6 @@
 #include "dialog.h"
 #include "friend.h"
 #include "menu_friendlist.h"
-#include "menu_main.h"
 #include "status_bar.h"
 #include "touch.h"
 #include "utils.h"
