@@ -1,13 +1,13 @@
+#include <3ds.h>
+
 #include "C2D_helper.h"
 #include "common.h"
-#include "dialog.h"
 #include "menu_friendlist.h"
 #include "menu_main.h"
 #include "touch.h"
 #include "utils.h"
 
-void Menu_DisplayDialog(void)
-{
+void Menu_DisplayDeleteDialog(void) {
 	float text_width = 0, text2_width = 0;
 	int dialog_selection = 0;
 	float confirm_width = 0, confirm_height = 0;
@@ -15,8 +15,7 @@ void Menu_DisplayDialog(void)
 
 	bool refresh = false;
 
-	while(aptMainLoop())
-	{
+	while(aptMainLoop()) {
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(RENDER_BOTTOM, DEFAULT_BG);
 		C2D_SceneBegin(RENDER_BOTTOM);
@@ -55,16 +54,10 @@ void Menu_DisplayDialog(void)
 		Utils_SetMin(&dialog_selection, 1, 0);
 
 		if (kDown & KEY_B)
-		{
-			wait(1);
 			break;
-		}
 
-		if (kDown & KEY_A)
-		{
-			if (dialog_selection == 1)
-			{
-				wait(1);
+		if (kDown & KEY_A) {
+			if (dialog_selection == 1) {
 				FRD_RemoveFriend(friendKey[selection].principalId, friendCodes[selection]);
 				refresh = true;
 				break;
@@ -73,23 +66,16 @@ void Menu_DisplayDialog(void)
 				break;
 		}
 
-		if (TouchInRect((288 - cancel_width) - 5, (159 - cancel_height) - 5, ((288 - cancel_width) - 5) + cancel_width + 10, ((159 - cancel_height) - 5) + cancel_height + 10))
-		{
+		if (TouchInRect((288 - cancel_width) - 5, (159 - cancel_height) - 5, ((288 - cancel_width) - 5) + cancel_width + 10, ((159 - cancel_height) - 5) + cancel_height + 10)) {
 			dialog_selection = 0;
 
 			if (kDown & KEY_TOUCH)
-			{
-				wait(1);
 				break;
-			}
 		}
-		else if (TouchInRect((248 - (confirm_height)) - 5, (159 - confirm_height) - 5, ((248 - (confirm_height)) - 5) + confirm_height + 10, ((159 - confirm_height) - 5) + confirm_height + 10))
-		{
+		else if (TouchInRect((248 - (confirm_height)) - 5, (159 - confirm_height) - 5, ((248 - (confirm_height)) - 5) + confirm_height + 10, ((159 - confirm_height) - 5) + confirm_height + 10)) {
 			dialog_selection = 1;
 
-			if (kDown & KEY_TOUCH)
-			{
-				wait(1);
+			if (kDown & KEY_TOUCH) {
 				FRD_RemoveFriend(friendKey[selection].principalId, friendCodes[selection]);
 				refresh = true;
 				break;

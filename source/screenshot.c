@@ -5,12 +5,10 @@
 
 #include "common.h"
 #include "fs.h"
-#include "screenshot.h"
 
 static int num = 0;
 
-static Result generateScreenshot(const char *path)
-{
+static Result Screenshot_GenerateScreenshot(const char *path) {
 	int x = 0, y = 0;
 	Handle handle;
 	u32 bytesWritten = 0;
@@ -23,16 +21,15 @@ static Result generateScreenshot(const char *path)
 	u8 *gfxTopLeft = gfxGetFramebuffer(GFX_TOP, GFX_LEFT, NULL, NULL);
 
 	// Open file for writing screenshot
-	if (R_FAILED(ret = FS_Open(&handle, archive, path, (FS_OPEN_CREATE | FS_OPEN_WRITE))))
+	if (R_FAILED(ret = FS_Open(&handle, archive, path, (FS_OPEN_CREATE | FS_OPEN_WRITE)))) {
 		return ret;
+	}
 
-	// Some
-	u8 *buf = (u8*)malloc(size + 576000);
+	u8 *buf = malloc(size + 576000);
 	memset(buf, 0, size + 576000);
 	buf[size + 576000] = 0;
 
-	if (R_FAILED(ret = FSFILE_SetSize(handle, (u16)(size + 576000))))
-	{
+	if (R_FAILED(ret = FSFILE_SetSize(handle, (u16)(size + 576000)))) {
 		free(buf);
 		return ret;
 	}
@@ -47,14 +44,12 @@ static Result generateScreenshot(const char *path)
 	*(u32*)&buf[0x22] = 576000;
 
 	// Generate top left
-	u8* framebuf = gfxTopLeft;
+	u8 *framebuf = gfxTopLeft;
 
-	for (y = 0; y < 240; y++)
-	{
-		for (x = 0; x < 400; x++)
-		{
-			int si = ((239 - y) + (x *240)) *3;
-			int di = size + (x + ((479 - y) *400)) *3;
+	for (y = 0; y < 240; y++) {
+		for (x = 0; x < 400; x++) {
+			int si = ((239 - y) + (x * 240)) * 3;
+			int di = size + (x + ((479 - y) * 400)) * 3;
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
@@ -64,43 +59,37 @@ static Result generateScreenshot(const char *path)
 	// Generate bottom right
 	framebuf = gfxBottom;
 
-	for (y = 0; y < 240; y++)
-	{
-		for (x = 0; x < 320; x++)
-		{
-			int si = ((239 - y) + (x *240)) *3;
-			int di = size + ((x+40) + ((239 - y) *400)) *3;
+	for (y = 0; y < 240; y++) {
+		for (x = 0; x < 320; x++) {
+			int si = ((239 - y) + (x * 240)) * 3;
+			int di = size + ((x+40) + ((239 - y) * 400)) * 3;
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
 			buf[di++] = framebuf[si++];
 		}
 
 		// Make adjustments for the smaller width
-		for (x = 0; x < 40; x++)
-		{
-			int di = size + (x + ((239 - y) *400)) *3;
+		for (x = 0; x < 40; x++) {
+			int di = size + (x + ((239 - y) * 400)) * 3;
 			buf[di++] = 0;
 			buf[di++] = 0;
 			buf[di++] = 0;
 		}
 
-		for (x = 360; x < 400; x++)
-		{
-			int di = size + (x + ((239 - y) *400)) *3;
+		for (x = 360; x < 400; x++) {
+			int di = size + (x + ((239 - y) * 400)) * 3;
 			buf[di++] = 0;
 			buf[di++] = 0;
 			buf[di++] = 0;
 		}
 	}
 
-	if (R_FAILED(FSFILE_Write(handle, &bytesWritten, offset, (u32 *)buf, size + 576000, 0x10001)))
-	{
+	if (R_FAILED(ret = FSFILE_Write(handle, &bytesWritten, offset, (u32 *)buf, size + 576000, 0x10001))) {
 		free(buf);
 		return ret;
 	}
 
-	if (R_FAILED(FSFILE_Close(handle)))
-	{
+	if (R_FAILED(ret = FSFILE_Close(handle))) {
 		free(buf);
 		return ret;
 	}
@@ -109,8 +98,7 @@ static Result generateScreenshot(const char *path)
 	return 0;
 }
 
-static void generateScreenshotFileName(int number, char *fileName, const char *ext)
-{
+static void Screenshot_GenerateFilename(int number, char *fileName, const char *ext) {
 	time_t unixTime = time(NULL);
 	struct tm* timeStruct = gmtime((const time_t *)&unixTime);
 	int num = number;
@@ -124,21 +112,17 @@ static void generateScreenshotFileName(int number, char *fileName, const char *e
 	sprintf(fileName, "/screenshots/Screenshot_%02d%02d%02d-%i%s", year, month, day, num, ext);
 }
 
-void Screenshot_Capture(void)
-{
+void Screenshot_Capture(void) {
 	static char filename[256];
 
 	sprintf(filename, "%s", "screenshot");
+	Screenshot_GenerateFilename(num, filename, ".bmp");
 
-	wait(1);
-	generateScreenshotFileName(num, filename, ".bmp");
-
-	while (FS_FileExists(archive, filename))
-	{
+	while (FS_FileExists(archive, filename)) {
 		num++;
-		generateScreenshotFileName(num, filename, ".bmp");
+		Screenshot_GenerateFilename(num, filename, ".bmp");
 	}
 
-	generateScreenshot(filename);
+	Screenshot_GenerateScreenshot(filename);
 	num++;
 }

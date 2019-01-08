@@ -5,10 +5,10 @@
 
 #include "frd.h"
 
-extern size_t friendCount;
+extern u32 friendCount;
 
 extern FriendKey friendKey[FRIEND_LIST_SIZE];
-extern MiiStoreData friendMiiList[FRIEND_LIST_SIZE];
+extern MiiData friendMiiList[FRIEND_LIST_SIZE];
 extern GameDescription friendPlayGameDesc[FRIEND_LIST_SIZE];
 extern GameDescription friendFavGameDesc[FRIEND_LIST_SIZE];
 

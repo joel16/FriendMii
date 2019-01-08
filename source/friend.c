@@ -4,12 +4,12 @@
 #include <3ds.h>
 
 #include "friend.h"
+#include "fs.h"
 #include "keyboard.h"
-#include "log.h"
+#include "menu_friendlist.h"
 #include "utils.h"
 
-typedef enum 
-{
+typedef enum {
 	PLATFORM_WII,
 	PLATFORM_DSI,
 	PLATFORM_3DS,
@@ -49,27 +49,23 @@ typedef struct {
     u16 bigIconData[0x900];
 } smdh_s;
 
-char *Friend_GetScreenName(void)
-{
-	static char screen_name[FRIENDS_SCREEN_NAME_SIZE + 1];
+char *Friend_GetScreenName(void) {
+	static char screen_name[FRIEND_SCREEN_NAME_SIZE];
 
-	if (R_SUCCEEDED(FRD_GetMyScreenName(screen_name, FRIENDS_SCREEN_NAME_SIZE)))
+	if (R_SUCCEEDED(FRD_GetMyScreenName(screen_name, FRIEND_SCREEN_NAME_SIZE)))
 		return screen_name;
 	
 	return NULL;
 }
 
-char *Friend_GetFriendKey(void)
-{
+char *Friend_GetFriendKey(void) {
 	FriendKey key;
 	u64 localFriendCode = 0;
 	int bytes[0x3];
 	static char friendKey[0x13];
 	
-	if (R_SUCCEEDED(FRD_GetMyFriendKey(&key)))
-	{
-		if (R_SUCCEEDED(FRD_PrincipalIdToFriendCode(key.principalId, &localFriendCode)))
-		{
+	if (R_SUCCEEDED(FRD_GetMyFriendKey(&key))) {
+		if (R_SUCCEEDED(FRD_PrincipalIdToFriendCode(key.principalId, &localFriendCode))) {
 			bytes[0] = localFriendCode / 100000000;
 			bytes[1] = (localFriendCode % 100000000) / 10000;
 			bytes[2] = localFriendCode % 10000;
@@ -81,8 +77,7 @@ char *Friend_GetFriendKey(void)
 	return friendKey;
 }
 
-u64 Friend_GetFavouriteGame(void)
-{
+u64 Friend_GetFavouriteGame(void) {
 	u64 titleId = 0;
 	
 	if (R_SUCCEEDED(FRD_GetMyFavoriteGame(&titleId)))
@@ -91,8 +86,7 @@ u64 Friend_GetFavouriteGame(void)
 	return 0;
 }
 
-static Result Friend_ParseSMDH(u64 titleId, bool isGame, smdh_s *smdh) 
-{
+static Result Friend_ParseSMDH(u64 titleId, bool isGame, smdh_s *smdh) {
 	Handle handle;
 	Result ret = 0;
 
@@ -112,8 +106,7 @@ static Result Friend_ParseSMDH(u64 titleId, bool isGame, smdh_s *smdh)
 	FS_Path binArchPath = {PATH_BINARY, 0x10, archPath};
 	FS_Path binFilePath = {PATH_BINARY, 0x14, filePath};
 
-	if (R_SUCCEEDED(ret = FSUSER_OpenFileDirectly(&handle, ARCHIVE_SAVEDATA_AND_CONTENT, binArchPath, binFilePath, FS_OPEN_READ, 0)))
-	{
+	if (R_SUCCEEDED(ret = FSUSER_OpenFileDirectly(&handle, ARCHIVE_SAVEDATA_AND_CONTENT, binArchPath, binFilePath, FS_OPEN_READ, 0))) {
 		u32 bytesRead = 0;
 
 		if (R_SUCCEEDED(ret = FSFILE_Read(handle, &bytesRead, 0, smdh, sizeof(smdh_s))))
@@ -127,19 +120,17 @@ static Result Friend_ParseSMDH(u64 titleId, bool isGame, smdh_s *smdh)
 	return 0;
 }
 
-static CFG_Language Friend_GetLanguage()
-{
+static CFG_Language Friend_GetLanguage() {
 	CFG_Language language;
 	CFGU_GetSystemLanguage(&language);
 	
 	return language;
 }
 
-char *Friend_GetGameTitle(u64 titleId)
-{
+u8 *Friend_GetGameTitle(u64 titleId) {
 	smdh_s smdh;
 	
-	static char shortDesc[0x41] = {'\0'};
+	static u8 shortDesc[0x41] = {'\0'};
 	
 	if (R_SUCCEEDED(Friend_ParseSMDH(titleId, false, &smdh)))
 		Utils_U16_To_U8(shortDesc, smdh.applicationTitles[Friend_GetLanguage()].shortDescription, 0x41);
@@ -147,10 +138,8 @@ char *Friend_GetGameTitle(u64 titleId)
 	return shortDesc;
 }
 
-static AppPlatform platformFromId(u16 id)
-{
-	switch(id) 
-	{
+static AppPlatform platformFromId(u16 id) {
+	switch(id) {
 		case 1:
 			return PLATFORM_WII;
 		case 3:
@@ -164,12 +153,10 @@ static AppPlatform platformFromId(u16 id)
     }
 }
 
-char *Friend_GetPlatform(u64 titleId)
-{
+char *Friend_GetPlatform(u64 titleId) {
 	AppPlatform platform = platformFromId(((u16*) &titleId)[3]);
 	
-	switch(platform)
-	{
+	switch(platform) {
 		case PLATFORM_WII:
 			return "for Nintendo Wii";
 		case PLATFORM_DSI:
@@ -184,13 +171,11 @@ char *Friend_GetPlatform(u64 titleId)
 }
 
 // This function is written by bernardo: https://github.com/BernardoGiordano/Checkpoint/blob/master/3ds/source/title.cpp#L644
-C2D_Image Friend_LoadGameIcon(u64 titleId)
-{
+C2D_Image Friend_LoadGameIcon(u64 titleId) {
 	smdh_s smdh;
 	C2D_Image image;
 
-	if (R_SUCCEEDED(Friend_ParseSMDH(titleId, false, &smdh)))
-	{
+	if (R_SUCCEEDED(Friend_ParseSMDH(titleId, false, &smdh))) {
 		C3D_Tex* tex = (C3D_Tex*)malloc(sizeof(C3D_Tex));
 		static const Tex3DS_SubTexture subt3x = { 48, 48, 0.0f, 48 / 64.0f, 48 / 64.0f, 0.0f };
 		image = (C2D_Image){ tex, &subt3x };
@@ -198,8 +183,7 @@ C2D_Image Friend_LoadGameIcon(u64 titleId)
 		u16 *dest = (u16*)image.tex->data + (64 - 48) * 64;
 		u16 *src = smdh.bigIconData;
 
-		for (int j = 0; j < 48; j += 8)
-		{
+		for (int j = 0; j < 48; j += 8) {
 			memcpy(dest, src, 48 * 8 * sizeof(u16));
 			src += 48 * 8;
 			dest += 64 * 8;
@@ -209,8 +193,7 @@ C2D_Image Friend_LoadGameIcon(u64 titleId)
 	return image;
 }
 
-bool Friend_GetHideStatus(void)
-{
+bool Friend_GetHideStatus(void) {
 	bool isPublicMode = false, isShowGameName = false, isShowPlayedGame = false;
 	
 	if (R_SUCCEEDED(FRD_GetMyPreference(&isPublicMode, &isShowGameName, &isShowPlayedGame)))
@@ -219,8 +202,7 @@ bool Friend_GetHideStatus(void)
 	return false;
 }
 
-bool Friend_GetHideTitleStatus(void)
-{
+bool Friend_GetHideTitleStatus(void) {
 	bool isPublicMode = false, isShowGameName = false, isShowPlayedGame = false;
 	
 	if (R_SUCCEEDED(FRD_GetMyPreference(&isPublicMode, &isShowGameName, &isShowPlayedGame)))
@@ -229,32 +211,41 @@ bool Friend_GetHideTitleStatus(void)
 	return false;
 }
 
-bool Friend_IsFromFriendList(FriendKey *friendKeyList)
-{
+bool Friend_IsFromFriendList(FriendKey *friendKeyList) {
 	bool isFromList = false;
 
-	if (R_SUCCEEDED(FRD_IsFromFriendList(friendKeyList, &isFromList)))
+	if (R_SUCCEEDED(FRD_IsInFriendList(friendKeyList, &isFromList)))
 		return isFromList;
 
 	return false;
 }
 
-char *Friend_GetMyComment(void)
-{
-	static char comment[FRIENDS_COMMENT_SIZE];
+char *Friend_GetMyComment(void) {
+	static char comment[FRIEND_COMMENT_SIZE];
 
-	if (R_SUCCEEDED(FRD_GetMyComment(comment, FRIENDS_COMMENT_SIZE)))
+	if (R_SUCCEEDED(FRD_GetMyComment(comment, FRIEND_COMMENT_SIZE)))
 		return comment;
 
 	return NULL;
 }
 
-bool Friend_IsOnline(void)
-{
+bool Friend_IsOnline(void) {
 	bool isOnline = false;
 	
 	if (R_SUCCEEDED(FRDU_IsOnline(&isOnline)))
 		return isOnline;
 	
 	return false;
+}
+
+void Friend_BackupFriendList(void) {
+	if (FS_FileExists(archive, "/FriendMii.txt"))
+		FSUSER_DeleteFile(archive, fsMakePath(PATH_ASCII, "/FriendMii.txt"));
+
+	FILE *file = fopen("/FriendMii.txt", "a");
+
+	for (size_t i = 0x0; i < friendCount; i++)
+		fprintf(file, "%s:%llu\n", strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB], friendCodes[i]);
+
+	fclose(file);
 }

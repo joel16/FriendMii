@@ -4,8 +4,7 @@
 
 static C2D_SpriteSheet spritesheet;
 
-void Textures_Load(void)
-{
+void Textures_Load(void) {
 	spritesheet = C2D_SpriteSheetLoad("romfs:/res/drawable/sprites.t3x");
 
 	battery_1 = C2D_SpriteSheetGetImage(spritesheet, sprites_battery_1_idx);
@@ -15,9 +14,10 @@ void Textures_Load(void)
 	battery_charge = C2D_SpriteSheetGetImage(spritesheet, sprites_battery_charge_idx);
 	icon_search = C2D_SpriteSheetGetImage(spritesheet, sprites_ic_material_light_search_idx);
 	icon_add = C2D_SpriteSheetGetImage(spritesheet, sprites_ic_material_light_add_idx);
+	icon_delete = C2D_SpriteSheetGetImage(spritesheet, sprites_ic_material_light_delete_idx);
+	icon_backup = C2D_SpriteSheetGetImage(spritesheet, sprites_ic_material_light_backup_idx);
 }
 
-void Textures_Free(void)
-{
+void Textures_Free(void) {
 	C2D_SpriteSheetFree(spritesheet);
 }

@@ -10,8 +10,7 @@
 
 static u32 cpu_time_limit = 0;
 
-static void Init_Services(void)
-{
+static void Init_Services(void) {
 	FS_OpenArchive(&archive, ARCHIVE_SDMC);
 	frdInit();
 	srvGetServiceHandle(&frdHandle, "frd:u");
@@ -41,8 +40,7 @@ static void Init_Services(void)
 	RENDER_BOTTOM = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 }
 
-static void Term_Services(void)
-{
+static void Term_Services(void) {
 	C2D_TextBufDelete(sizeBuf);
 	C2D_TextBufDelete(dynamicBuf);
 	C2D_TextBufDelete(staticBuf);
@@ -68,12 +66,10 @@ static void Term_Services(void)
 	FS_CloseArchive(archive);
 }
 
-int main(int argc, char **argv) 
-{
+int main(int argc, char **argv) {
 	Init_Services();
 
-	if (setjmp(exitJmp)) 
-	{
+	if (setjmp(exitJmp)) {
 		Term_Services();
 		return 0;
 	}

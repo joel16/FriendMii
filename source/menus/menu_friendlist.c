@@ -13,8 +13,7 @@
 int selection = 0;
 static bool remove_selected = false;
 
-void Menu_DisplayFriendListTop(void)
-{
+void Menu_DisplayFriendListTop(void) {
 	Draw_Rect(50, 37, 298, 80, C2D_Color32(224, 224, 224, 255));
 	Draw_Rect(50, 117, 298, 57, C2D_Color32(176, 176, 176, 255));
 
@@ -22,13 +21,11 @@ void Menu_DisplayFriendListTop(void)
 
 	int printed = 0; // Print counter
 
-	for (size_t i = 0x0; i < friendCount; i++)
-	{
+	for (u32 i = 0x0; i < friendCount; i++) {
 		if (printed == LIST_PER_PAGE)
 			break;
 
-		if (selection < LIST_PER_PAGE || i > (selection - LIST_PER_PAGE))
-		{
+		if (selection < LIST_PER_PAGE || i > (selection - LIST_PER_PAGE)) {
 			Draw_Textf(112, 70, 0.5f, TEXT_COLOUR, "(%016llX)", (friendPlayTIDs[selection] == 0)? friendFavTIDs[selection] : friendPlayTIDs[selection]);
 
 			Draw_Text(345 - Draw_GetTextWidth(0.7f, strlen(&friendNames[i * 0xB]) == 0? "Unknown" : &friendNames[i * 0xB]), 176, 0.7f, 
@@ -44,8 +41,7 @@ void Menu_DisplayFriendListTop(void)
 
 //static char friendListCount[10];
 
-void Menu_DisplayFriendListBottom(void)
-{
+void Menu_DisplayFriendListBottom(void) {
 	Draw_Rect(106, 20, (Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 10), 20, remove_selected? C2D_Color32(224, 224, 224, 255) : C2D_Color32(176, 176, 176, 255));
 	Draw_Rect(110 - 3, 21, (Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 8), 18, WHITE);
 	Draw_Rect(110 - 2, 22, (Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 6), 16, remove_selected? C2D_Color32(224, 224, 224, 255) : C2D_Color32(176, 176, 176, 255));
@@ -67,14 +63,12 @@ void Menu_DisplayFriendListBottom(void)
 	Draw_Textf((320 - (Draw_GetTextWidth(0.5f, "X / X"))) / 2, 190, 0.5f, C2D_Color32(126, 52, 34, 255), "%d / %d", selection + 1, friendCount);
 }
 
-void Menu_ControlFriendList(u32 kDown, u32 kHeld)
-{
-	if (TouchInRect(106, 20, 106 + ((Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 10)), 40))
-	{
+void Menu_ControlFriendList(u32 kDown, u32 kHeld) {
+	if (TouchInRect(106, 20, 106 + ((Draw_GetTextWidth(0.45, "\uE070 Remove friend") + 10)), 40)) {
 		remove_selected = true;
 		
 		if (kDown & KEY_TOUCH)
-			Menu_DisplayDialog();
+			Menu_DisplayDeleteDialog();
 	}
 	else
 		remove_selected = false;
@@ -84,13 +78,11 @@ void Menu_ControlFriendList(u32 kDown, u32 kHeld)
 	else if (kDown & KEY_DLEFT)
 		selection--;
 
-	if (kHeld & KEY_CPAD_RIGHT)
-	{
+	if (kHeld & KEY_CPAD_RIGHT) {
 		wait(5);
 		selection++;
 	}
-	else if (kHeld & KEY_CPAD_LEFT)
-	{
+	else if (kHeld & KEY_CPAD_LEFT) {
 		wait(5);
 		selection--;
 	}
@@ -99,5 +91,5 @@ void Menu_ControlFriendList(u32 kDown, u32 kHeld)
 	Utils_SetMin(&selection, friendCount - 1, 0);
 
 	if (kDown & KEY_X)
-		Menu_DisplayDialog();
+		Menu_DisplayDeleteDialog();
 }

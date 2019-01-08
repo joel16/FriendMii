@@ -5,36 +5,17 @@
 Handle frdHandle;
 int frdRefCount;
 
-Result FRD_GetFriendMii2(MiiStoreData *miiDataList, const FriendKey *friendKeyList, size_t size)
-{
-	Result ret = 0;
-	u32 *cmdbuf = getThreadCommandBuffer();
-
-	cmdbuf[0] = IPC_MakeHeader(0x14, 1, 4); // 0x140044
-	cmdbuf[1] = size;
-	cmdbuf[2] = (size << 18)|2;
-	cmdbuf[3] = (u32)friendKeyList;
-	cmdbuf[4] = 0x600 *size | 0xC;
-	cmdbuf[5] = (u32)miiDataList;
-
-	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
-		return ret;
-
-	return (Result)cmdbuf[1];
-}
-
-Result FRD_GetFriendComment(wchar_t *comment, FriendKey *friendKeyList, size_t size)
-{
+Result FRD_GetFriendComment(wchar_t *comment, FriendKey *friendKeyList, size_t size) {
     Result ret = 0;
     u32 *cmdbuf = getThreadCommandBuffer();
     cmdbuf[0] = 0x310082;
     cmdbuf[1] = 17 * size;
     cmdbuf[2] = size;
-    cmdbuf[3] = ((size) << 18)|2;
+    cmdbuf[3] = ((size) << 18) | 2;
     cmdbuf[4] = (u32)friendKeyList;
     
     u32 *staticbuf = getThreadStaticBuffers();
-    staticbuf[0] = ((17 * size) << 15)|2;
+    staticbuf[0] = ((17 * size) << 15) | 2;
     staticbuf[1] = (u32)comment;
     
     if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) 
@@ -43,8 +24,7 @@ Result FRD_GetFriendComment(wchar_t *comment, FriendKey *friendKeyList, size_t s
     return (Result)cmdbuf[1];
 }
 
-Result FRD_GetMyPresence(MyPresence *myPresence)
-{
+Result FRD_GetMyPresence(MyPresence *myPresence) {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	u32 *statbuf = getThreadStaticBuffers();
@@ -59,8 +39,7 @@ Result FRD_GetMyPresence(MyPresence *myPresence)
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetFriendPresence(FriendPresence* friendPresenceList, const FriendKey* friendKeyList, size_t size)
-{
+Result FRD_GetFriendPresence(FriendPresence* friendPresenceList, const FriendKey* friendKeyList, size_t size) {
 	Result ret;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -76,8 +55,7 @@ Result FRD_GetFriendPresence(FriendPresence* friendPresenceList, const FriendKey
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_GetFriendAttributeFlags(AttributeFlag *attributeFlags, const FriendKey *friendKeyList, size_t size)
-{
+Result FRD_GetFriendAttributeFlags(AttributeFlag *attributeFlags, const FriendKey *friendKeyList, size_t size) {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -94,8 +72,7 @@ Result FRD_GetFriendAttributeFlags(AttributeFlag *attributeFlags, const FriendKe
 	return (Result)cmdbuf[1];
 }
 
-Result FRD_UpdateGameMode(const GameMode *gameMode, u16 *desc)
-{
+Result FRD_UpdateGameMode(const GameMode *gameMode, u16 *desc) {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 

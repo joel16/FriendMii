@@ -6,14 +6,10 @@
 #include "menu_friendlist.h"
 #include "keyboard.h"
 
-static SwkbdCallbackResult SearchFriendCallback(void* user, const char** ppMessage, const char* text, size_t textlen)
-{
-	for (int i = 0; i < friendCount; i++)
-	{
-		if (strlen(text) != 0)
-		{
-			if (strstr(text, &friendNames[i * 0xB]))
-			{
+static SwkbdCallbackResult SearchFriendCallback(void* user, const char** ppMessage, const char* text, size_t textlen) {
+	for (int i = 0; i < friendCount; i++) {
+		if (strlen(text) != 0) {
+			if (strstr(text, &friendNames[i * 0xB])) {
 				selection = i;
 
 				if (MENU_STATE != STATE_FRIENDLIST)
@@ -28,12 +24,11 @@ static SwkbdCallbackResult SearchFriendCallback(void* user, const char** ppMessa
 	return SWKBD_CALLBACK_CLOSE;
 }
 
-void Keyboard_SearchFriend(const char *hint_text)
-{
+void Keyboard_SearchFriend(const char *hint_text) {
 	Draw_EndFrame();
 
 	static SwkbdState swkbd;
-	static SwkbdStatusData swkbdStatus;
+	//static SwkbdStatusData swkbdStatus;
 	char input_string[0xC];
 
 	swkbdInit(&swkbd, SWKBD_TYPE_NORMAL, 2, 0xC);
@@ -57,22 +52,17 @@ void Keyboard_SearchFriend(const char *hint_text)
 	return;
 }
 
-static SwkbdCallbackResult AddFriendCallback(void* user, const char** ppMessage, const char* text, size_t textlen)
-{
+static SwkbdCallbackResult AddFriendCallback(void* user, const char** ppMessage, const char* text, size_t textlen) {
 	u64 friend_code = 0;
 	u32 principal_id = 0;
 	bool isInputValid = false;
 
 	sscanf(text, "%lld", &friend_code); 
 
-	if (R_SUCCEEDED(FRD_IsValidFriendCode(friend_code, &isInputValid)))
-	{
-		if (isInputValid)
-		{
-			if (R_SUCCEEDED(FRD_FriendCodeToPrincipalId(friend_code, &principal_id)))
-			{
-				if (R_SUCCEEDED(FRD_AddFriendOnline(0, principal_id)))
-				{
+	if (R_SUCCEEDED(FRD_IsValidFriendCode(friend_code, &isInputValid))) {
+		if (isInputValid) {
+			if (R_SUCCEEDED(FRD_FriendCodeToPrincipalId(friend_code, &principal_id))) {
+				if (R_SUCCEEDED(FRD_AddFriendOnline(0, principal_id))) {
 					*ppMessage = "Friend added successfully.";
 
 					selection = friendCount;
@@ -82,26 +72,22 @@ static SwkbdCallbackResult AddFriendCallback(void* user, const char** ppMessage,
 					
 					return SWKBD_CALLBACK_CLOSE;
 				}
-				else
-				{
+				else {
 					*ppMessage = "Failed to add friend.";
 					return SWKBD_CALLBACK_CLOSE;
 				}
 			}
-			else
-			{
+			else {
 				*ppMessage = "Failed to convert friend code to principal ID.";
 				return SWKBD_CALLBACK_CLOSE;
 			}
 		}
-		else
-		{
+		else {
 			*ppMessage = "Invalid friend code.";
 			return SWKBD_CALLBACK_CLOSE;
 		}
 	}
-	else
-	{
+	else {
 		*ppMessage = "Failed to check friend code validity.";
 		return SWKBD_CALLBACK_CLOSE;
 	}
@@ -109,8 +95,7 @@ static SwkbdCallbackResult AddFriendCallback(void* user, const char** ppMessage,
 	return SWKBD_CALLBACK_OK;
 }
 
-void Keyboard_GetFriendCode(void)
-{
+void Keyboard_GetFriendCode(void) {
 	Draw_EndFrame();
 
 	static SwkbdState swkbd;

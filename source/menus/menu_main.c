@@ -12,12 +12,10 @@
 #include "touch.h"
 #include "utils.h"
 
-#include "title_parser.h"
-
-size_t friendCount = 0;
+u32 friendCount = 0;
 
 FriendKey friendKey[FRIEND_LIST_SIZE];
-MiiStoreData friendMiiList[FRIEND_LIST_SIZE];
+MiiData friendMiiList[FRIEND_LIST_SIZE];
 GameDescription friendPlayGameDesc[FRIEND_LIST_SIZE];
 GameDescription friendFavGameDesc[FRIEND_LIST_SIZE];
 
@@ -34,34 +32,29 @@ u64 friendCodes[FRIEND_LIST_SIZE];
 u64 friendFavTIDs[FRIEND_LIST_SIZE];
 u64 friendPlayTIDs[FRIEND_LIST_SIZE];
 
-void Menu_Main(void)
-{
+void Menu_Main(void) {
 	Friend_GameIcon =  Friend_LoadGameIcon(Friend_GetFavouriteGame());
 
 	FRD_GetFriendKeyList(friendKey, &friendCount, 0, FRIENDS_COMMENT_SIZE);
-	FRD_GetFriendMii2(friendMiiList, friendKey, friendCount);
+	FRD_GetFriendMii(friendMiiList, friendKey, friendCount);
 
-	//Title_ParserParseXML("/3dsreleases.xml");
-	//const char *title = Title_ParserGetValue("name");
-
-	for (size_t i = 0x0; i < friendCount; i++) 
-	{
+	for (u32 i = 0x0; i < friendCount; i++) {
 		FRD_PrincipalIdToFriendCode(friendKey[i].principalId, &friendCodes[i]);
 		
 		FRD_IsValidFriendCode(friendCodes[i], &isValid[i]);
 		isFromList[i] = Friend_IsFromFriendList(&friendKey[i]);
 		
-		Utils_U16_To_U8(&friendNames[i * 0xB], friendMiiList[i].mii_name, 0xB);
+		Utils_U16_To_U8((u8 *)&friendNames[i * 0xB], friendMiiList[i].mii_name, 0xB);
 		friendNames[i * 0xB + 0xA] = 0;
 		
-		Utils_U16_To_U8(&friendAuthor[i * 0xB], friendMiiList[i].mii_name, 0xB);
+		Utils_U16_To_U8((u8 *)&friendAuthor[i * 0xB], friendMiiList[i].mii_name, 0xB);
 		friendAuthor[i * 0xB + 0xA] = 0;
 
 		FRD_GetFriendPlayingGame(&friendPlayGameDesc[i], &friendKey[i], friendCount);
 		FRD_GetFriendFavouriteGame(&friendFavGameDesc[i], &friendKey[i], friendCount);
 
 		FRD_GetFriendComment(wfriendComment, &friendKey[i], i);
-		Utils_U16_To_U8(friendComment[i], (u16 *)wfriendComment, FRIENDS_COMMENT_SIZE);
+		Utils_U16_To_U8((u8 *)friendComment[i], (u16 *)wfriendComment, FRIENDS_COMMENT_SIZE);
 
 		friendPlayTIDs[i] = friendPlayGameDesc[i].data.tid;
 		//Utils_U16_To_U8((u8 *)friendGameDescList[i], friendFavGameDesc[i].desc, 128);
@@ -72,8 +65,9 @@ void Menu_Main(void)
 
 	bool close_touch = false;
 
-	while(aptMainLoop())
-	{
+	Friend_BackupFriendList();
+
+	while(aptMainLoop()) {
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(RENDER_TOP, DEFAULT_BG);
 		C2D_TargetClear(RENDER_BOTTOM, DEFAULT_BG);
@@ -86,8 +80,7 @@ void Menu_Main(void)
 
 		StatusBar_DisplayData();
 
-		switch(MENU_STATE)
-		{
+		switch(MENU_STATE) {
 			case STATE_FRIENDCARD:
 				Menu_DisplayFriendCardTop();
 				break;
@@ -102,8 +95,7 @@ void Menu_Main(void)
 		Draw_Rect(96, 104, 128, 80, WHITE);
 		Draw_Rect(98, 158, 124, 26, WHITE);
 
-		switch(MENU_STATE)
-		{
+		switch(MENU_STATE) {
 			case STATE_FRIENDCARD:
 				Menu_DisplayFriendCardBottom();
 				break;
@@ -114,8 +106,10 @@ void Menu_Main(void)
 
 		Draw_Rect(0, 0, 320, 20, C2D_Color32(70, 70, 78, 255));
 
-		Draw_Image(icon_search, 300, 0);
+		Draw_Image(icon_delete, 225, 0);
+		Draw_Image(icon_backup, 250, 0);
 		Draw_Image(icon_add, 275, 0);
+		Draw_Image(icon_search, 300, 0);
 
 		Draw_Rect(30, 210, 260, 30, close_touch == false? C2D_Color32(70, 70, 78, 255) : C2D_Color32(100, 100, 100, 255));
 
@@ -127,25 +121,20 @@ void Menu_Main(void)
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
 
-		if (TouchInRect(270, 0, 294, 25))
-		{
-			if (kDown & KEY_TOUCH)
-			{
+		if (TouchInRect(270, 0, 294, 25)) {
+			if (kDown & KEY_TOUCH) {
 				Keyboard_GetFriendCode();
 				Menu_Main();
 			}
 		}
-		else if (TouchInRect(295, 0, 320, 25))
-		{
-			if (kDown & KEY_TOUCH)
-			{
+		else if (TouchInRect(295, 0, 320, 25)) {
+			if (kDown & KEY_TOUCH) {
 				Keyboard_SearchFriend("Enter a friend's name.");
 				Menu_Main();
 			}
 		}
 
-		switch(MENU_STATE)
-		{
+		switch(MENU_STATE) {
 			case STATE_FRIENDLIST:
 				Menu_ControlFriendList(kDown, kHeld);
 				break;
@@ -159,8 +148,7 @@ void Menu_Main(void)
 		Utils_SetMax(&MENU_STATE, 0, 1);
 		Utils_SetMin(&MENU_STATE, 1, 0);
 
-		if (TouchInRect(30, 210, 290, 240))
-		{
+		if (TouchInRect(30, 210, 290, 240)) {
 			close_touch = true;
 			
 			if (kDown & KEY_TOUCH)

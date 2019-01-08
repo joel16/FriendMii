@@ -3,12 +3,10 @@
 
 #include "C2D_helper.h"
 #include "common.h"
-#include "status_bar.h"
 #include "textures.h"
 
-static char *Clock_GetCurrentTime(bool _12hour)
-{
-	static char buffer[10];
+static char *Clock_GetCurrentTime(bool _12hour) {
+	static char buffer[27];
 
 	time_t unix_time = time(0);
 	struct tm* time_struct = gmtime((const time_t*)&unix_time);
@@ -16,8 +14,7 @@ static char *Clock_GetCurrentTime(bool _12hour)
 	int minutes = time_struct->tm_min;
 	int amOrPm = 0;
 
-	if (_12hour)
-	{
+	if (_12hour) {
 		if (hours < 12)
 			amOrPm = 1;
 		if (hours == 0)
@@ -26,32 +23,29 @@ static char *Clock_GetCurrentTime(bool _12hour)
 			hours = hours - 12;
 
 		if ((hours >= 1) && (hours < 10))
-			snprintf(buffer, 10, "%2i:%02i %s", hours, minutes, amOrPm ? "AM" : "PM");
+			snprintf(buffer, 27, "%2i:%02i %s", hours, minutes, amOrPm ? "AM" : "PM");
 		else
-			snprintf(buffer, 10, "%2i:%02i %s", hours, minutes, amOrPm ? "AM" : "PM");
+			snprintf(buffer, 27, "%2i:%02i %s", hours, minutes, amOrPm ? "AM" : "PM");
 	}
 
 	return buffer;
 }
 
-static int Clock_GetCurrentDayNum(void)
-{
+static int Clock_GetCurrentDayNum(void) {
 	time_t unixTime = time(NULL);
 	struct tm *timeStruct = gmtime((const time_t *)&unixTime);
 	
 	return timeStruct->tm_mday;
 }
 
-static int Clock_GetCurrentMonth(void)
-{	
+static int Clock_GetCurrentMonth(void) {
 	time_t unixTime = time(NULL);
 	struct tm *timeStruct = gmtime((const time_t *)&unixTime);
 	
-	return timeStruct->tm_mon;;
+	return timeStruct->tm_mon + 1;
 }
 
-static char *Clock_GetCurrentDay(int type)
-{
+static char *Clock_GetCurrentDay(int type) {
 	static const char days[7][16] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 	
 	time_t unixTime = time(NULL);
@@ -66,14 +60,11 @@ static char *Clock_GetCurrentDay(int type)
 	return buffer;
 }
 
-static void Battery_GetStatus(void)
-{
+static void Battery_GetStatus(void) {
 	u8 batteryLevel = 0, isCharging = 0;
 	
-	if (R_SUCCEEDED(PTMU_GetBatteryLevel(&batteryLevel)))
-	{
-		switch (batteryLevel)
-		{
+	if (R_SUCCEEDED(PTMU_GetBatteryLevel(&batteryLevel))) {
+		switch (batteryLevel) {
 			case 0:
 				Draw_Image(battery_1, (400 - (battery_1.subtex->width)), 0);
 				break;
@@ -95,15 +86,13 @@ static void Battery_GetStatus(void)
 		}
 	}
 	
-	if (R_SUCCEEDED(PTMU_GetBatteryChargeState(&isCharging)))
-	{
+	if (R_SUCCEEDED(PTMU_GetBatteryChargeState(&isCharging))) {
 		if (isCharging)
 			Draw_Image(battery_charge, (400 - (battery_charge.subtex->width)), 0);
 	}
 }
 
-void StatusBar_DisplayData(void)
-{
+void StatusBar_DisplayData(void) {
 	float width = 0, height = 0;
 	Draw_GetTextSize(0.48f, &width, &height, Clock_GetCurrentTime(true));
 

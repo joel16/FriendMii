@@ -20,7 +20,7 @@ typedef u32 Colour;
 
 void Draw_EndFrame(void);
 void Draw_Text(float x, float y, float size, Colour colour, const char *text);
-void Draw_Textf(float x, float y, float size, Colour colour, const char* text, ...);
+void Draw_Textf(float x, float y, float size, Colour colour, const char *text, ...);
 void Draw_GetTextSize(float size, float *width, float *height, const char *text);
 float Draw_GetTextWidth(float size, const char *text);
 float Draw_GetTextHeight(float size, const char *text);
