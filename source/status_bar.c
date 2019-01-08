@@ -31,21 +31,28 @@ static char *Clock_GetCurrentTime(bool _12hour) {
 	return buffer;
 }
 
-static int Clock_GetCurrentDayNum(void) {
+int Clock_GetCurrentYear(void) {
 	time_t unixTime = time(NULL);
 	struct tm *timeStruct = gmtime((const time_t *)&unixTime);
 	
-	return timeStruct->tm_mday;
+	return timeStruct->tm_year + 1900;
 }
 
-static int Clock_GetCurrentMonth(void) {
+int Clock_GetCurrentMonth(void) {
 	time_t unixTime = time(NULL);
 	struct tm *timeStruct = gmtime((const time_t *)&unixTime);
 	
 	return timeStruct->tm_mon + 1;
 }
 
-static char *Clock_GetCurrentDay(int type) {
+int Clock_GetCurrentDay(void) {
+	time_t unixTime = time(NULL);
+	struct tm *timeStruct = gmtime((const time_t *)&unixTime);
+	
+	return timeStruct->tm_mday;
+}
+
+static char *Clock_GetCurrentDayString(int type) {
 	static const char days[7][16] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 	
 	time_t unixTime = time(NULL);
@@ -101,9 +108,9 @@ void StatusBar_DisplayData(void) {
 	Draw_Text(((400 - (battery_charge.subtex->width)) - 5) - width, (20 - height) / 2, 0.48f, BLACK, Clock_GetCurrentTime(true));
 
 	width = (Draw_GetTextWidth(0.48f, "0") + Draw_GetTextWidth(0.48f, "/00") + Draw_GetTextWidth(0.48f, " ()") + 
-				Draw_GetTextWidth(0.48f, Clock_GetCurrentDay(1)) + Draw_GetTextWidth(0.48f, Clock_GetCurrentDay(1)));
+				Draw_GetTextWidth(0.48f, Clock_GetCurrentDayString(1)) + Draw_GetTextWidth(0.48f, Clock_GetCurrentDayString(1)));
 	
-	Draw_Textf(316 - width, (20 - height) / 2, 0.48f, BLACK, "%d/%d (%s)", Clock_GetCurrentDayNum(), Clock_GetCurrentMonth(), Clock_GetCurrentDay(1));
+	Draw_Textf(316 - width, (20 - height) / 2, 0.48f, BLACK, "%d/%d (%s)", Clock_GetCurrentMonth(), Clock_GetCurrentDay(), Clock_GetCurrentDayString(1));
 
 	Draw_Textf(5, (20 - Draw_GetTextHeight(0.5f, "FriendMii vX.XX")) / 2, 0.5f, BLACK, "FriendMii v%d.%02d", VERSION_MAJOR, VERSION_MINOR);
 }

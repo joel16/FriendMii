@@ -35,6 +35,35 @@ Result FS_MakeDir(FS_Archive archive, const char *path) {
 	return 0;
 }
 
+Result FS_RecursiveMakeDir(FS_Archive archive, const char *dir) {
+	Result ret = 0;
+	char buf[256];
+	char *p = NULL;
+	size_t len;
+
+	snprintf(buf, sizeof(buf), "%s",dir);
+	len = strlen(buf);
+
+	if (buf[len - 1] == '/')
+		buf[len - 1] = 0;
+
+	for (p = buf + 1; *p; p++) {
+		if (*p == '/') {
+			*p = 0;
+
+			if (!FS_DirExists(archive, buf))
+				ret = FS_MakeDir(archive, buf);
+			
+			*p = '/';
+		}
+		
+		if (!FS_DirExists(archive, buf))
+			ret = FS_MakeDir(archive, buf);
+	}
+	
+	return ret;
+}
+
 bool FS_FileExists(FS_Archive archive, const char *path) {
 	Handle handle;
 

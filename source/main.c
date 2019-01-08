@@ -38,6 +38,8 @@ static void Init_Services(void) {
 
 	RENDER_TOP = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	RENDER_BOTTOM = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+
+	FS_RecursiveMakeDir(archive, "/3ds/FriendMii/");
 }
 
 static void Term_Services(void) {

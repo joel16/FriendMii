@@ -2,6 +2,7 @@
 
 #include "C2D_helper.h"
 #include "common.h"
+#include "dialog.h"
 #include "friend.h"
 #include "frd.h"
 #include "keyboard.h"
@@ -65,8 +66,6 @@ void Menu_Main(void) {
 
 	bool close_touch = false;
 
-	Friend_BackupFriendList();
-
 	while(aptMainLoop()) {
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 		C2D_TargetClear(RENDER_TOP, DEFAULT_BG);
@@ -106,7 +105,7 @@ void Menu_Main(void) {
 
 		Draw_Rect(0, 0, 320, 20, C2D_Color32(70, 70, 78, 255));
 
-		Draw_Image(icon_delete, 225, 0);
+		//Draw_Image(icon_delete, 225, 0);
 		Draw_Image(icon_backup, 250, 0);
 		Draw_Image(icon_add, 275, 0);
 		Draw_Image(icon_search, 300, 0);
@@ -121,7 +120,11 @@ void Menu_Main(void) {
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
 
-		if (TouchInRect(270, 0, 294, 25)) {
+		if (TouchInRect(245, 0, 269, 25)) {
+			if (kDown & KEY_TOUCH)
+				Menu_DisplayBackupDialog();
+		}
+		else if (TouchInRect(270, 0, 294, 25)) {
 			if (kDown & KEY_TOUCH) {
 				Keyboard_GetFriendCode();
 				Menu_Main();
